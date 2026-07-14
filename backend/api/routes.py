@@ -120,6 +120,18 @@ async def generate_automation(project_id: str):
         if not documents:
             raise HTTPException(status_code=400, detail="No documents uploaded for this project")
 
+        # Validate that all 3 required file types are present
+        required_types = {"functional_specification", "test_cases", "expected_output"}
+        uploaded_types = {doc["document_type"] for doc in documents}
+        
+        missing_types = required_types - uploaded_types
+        if missing_types:
+            missing_list = ", ".join(missing_types)
+            raise HTTPException(
+                status_code=400, 
+                detail=f"Missing required documents: {missing_list}. Please upload all 3 files: functional specification, test cases, and expected output."
+            )
+
         workflow_id = str(uuid.uuid4())
         
         documents_data = [
