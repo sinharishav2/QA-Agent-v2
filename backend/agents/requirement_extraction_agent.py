@@ -2,7 +2,7 @@ from .base_agent import BaseAgent
 from typing import Dict, Any, List
 import uuid
 import json
-from utils.gemini_client import gemini_client
+from utils.openai_client import openai_client
 
 
 class RequirementExtractionAgent(BaseAgent):
@@ -40,17 +40,17 @@ class RequirementExtractionAgent(BaseAgent):
     def _extract_requirements(self, parsed_content: Dict[str, Any]) -> List[Dict[str, Any]]:
         requirements = []
         
-        # Prepare content for Gemini
+        # Prepare content for OpenAI
         content_text = self._prepare_content_text(parsed_content)
         
-        # Use Gemini to extract requirements
-        gemini_response = gemini_client.extract_requirements(content_text)
+        # Use OpenAI to extract requirements
+        openai_response = openai_client.extract_requirements(content_text)
         
-        if gemini_response:
-            # Parse Gemini response and structure requirements
-            requirements = self._parse_gemini_requirements(gemini_response)
+        if openai_response:
+            # Parse OpenAI response and structure requirements
+            requirements = self._parse_openai_requirements(openai_response)
         else:
-            # Fallback to basic extraction if Gemini fails
+            # Fallback to basic extraction if OpenAI fails
             requirements = self._basic_extract_requirements(parsed_content)
         
         return requirements
@@ -70,12 +70,12 @@ class RequirementExtractionAgent(BaseAgent):
         
         return "\n\n".join(text_parts)
 
-    def _parse_gemini_requirements(self, gemini_response: str) -> List[Dict[str, Any]]:
-        """Parse Gemini response into structured requirements"""
+    def _parse_openai_requirements(self, openai_response: str) -> List[Dict[str, Any]]:
+        """Parse OpenAI response into structured requirements"""
         requirements = []
         
         # Split response by requirement lines
-        lines = gemini_response.split('\n')
+        lines = openai_response.split('\n')
         current_req = None
         
         for line in lines:

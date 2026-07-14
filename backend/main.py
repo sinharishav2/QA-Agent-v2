@@ -5,7 +5,18 @@ import sys
 
 from config import settings
 from api.routes import router
-from models.database import Base, engine
+
+# Try to import database, but handle gracefully if psycopg2 is not available
+try:
+    from models.database import Base, engine
+    db_available = True
+except (ImportError, ModuleNotFoundError) as e:
+    logger.warning(f"Database import failed: {str(e)}")
+    logger.info("Running in demo mode without database")
+    Base = None
+    engine = None
+    db_available = False
+
 from agents.document_ingestion_agent import DocumentIngestionAgent
 from agents.document_parser_agent import DocumentParserAgent
 from agents.requirement_extraction_agent import RequirementExtractionAgent
@@ -37,12 +48,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-try:
-    Base.metadata.create_all(bind=engine)
-    logger.info("Database tables created successfully")
-except Exception as e:
-    logger.warning(f"Could not initialize database: {str(e)}")
-    logger.info("Running in demo mode without database persistence")
+if db_available and Base is not None and engine is not None:
+    try:
+        Base.metadata.create_all(bind=engine)
+        logger.info("Database tables created successfully")
+    except Exception as e:
+        logger.warning(f"Could not initialize database: {str(e)}")
+        logger.info("Running in demo mode without database persistence")
+else:
+    logger.info("Database not available - running in demo mode with in-memory storage")
 
 orchestrator = OrchestratorAgent()
 
@@ -79,6 +93,10 @@ async def startup_event():
     logger.info("QA AI Automation Platform starting up...")
     logger.info(f"Environment: {settings.fastapi_env}")
     logger.info(f"Debug mode: {settings.fastapi_debug}")
+    
+    # Load persisted data
+    from api.routes import load_storage
+    load_storage()
 
 @app.on_event("shutdown")
 async def shutdown_event():
@@ -87,8 +105,8 @@ async def shutdown_event():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        app,
+        "main:app",
         host=settings.fastapi_host,
         port=settings.fastapi_port,
-        reload=settings.fastapi_debug
+        reload=False
     )

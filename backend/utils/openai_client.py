@@ -3,47 +3,67 @@ from config import settings
 from typing import Optional
 
 try:
-    import google.generativeai as genai
-    GENAI_AVAILABLE = True
+    from openai import AzureOpenAI, OpenAI
+    OPENAI_AVAILABLE = True
 except ImportError:
-    GENAI_AVAILABLE = False
-    logger.warning("google-generativeai not installed. Gemini features will be unavailable.")
+    OPENAI_AVAILABLE = False
+    logger.warning("openai not installed. OpenAI features will be unavailable.")
 
-class GeminiClient:
+class OpenAIClient:
     def __init__(self):
-        if not GENAI_AVAILABLE:
-            logger.warning("Google Generative AI library not available. Gemini features will be unavailable.")
-            self.client = None
-        elif not settings.google_api_key:
-            logger.warning("Google API key not configured. Gemini features will be unavailable.")
-            self.client = None
-        else:
+        self.client = None
+        
+        # Check if Azure OpenAI is configured
+        if settings.azure_openai_api_key and settings.azure_openai_endpoint:
             try:
-                genai.configure(api_key=settings.google_api_key)
-                self.model = genai.GenerativeModel('gemini-pro')
-                self.client = True
-                logger.info("Gemini client initialized successfully")
+                self.client = AzureOpenAI(
+                    api_key=settings.azure_openai_api_key,
+                    api_version="2024-02-15-preview",
+                    azure_endpoint=settings.azure_openai_endpoint
+                )
+                self.is_azure = True
+                logger.info("Azure OpenAI client initialized successfully")
             except Exception as e:
-                logger.warning(f"Failed to initialize Gemini client: {str(e)}")
+                logger.warning(f"Failed to initialize Azure OpenAI: {str(e)}")
                 self.client = None
+        
+        # Fallback to standard OpenAI
+        elif settings.openai_api_key:
+            try:
+                self.client = OpenAI(api_key=settings.openai_api_key)
+                self.is_azure = False
+                logger.info("OpenAI client initialized successfully")
+            except Exception as e:
+                logger.warning(f"Failed to initialize OpenAI: {str(e)}")
+                self.client = None
+        else:
+            logger.warning("OpenAI API key not configured. OpenAI features will be unavailable.")
 
-    def generate_content(self, prompt: str, temperature: float = 0.7) -> Optional[str]:
-        """Generate content using Gemini API"""
+    def generate_content(self, prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
+        """Generate content using OpenAI API"""
         if not self.client:
-            logger.error("Gemini client not initialized")
+            logger.error("OpenAI client not initialized")
             return None
         
         try:
-            response = self.model.generate_content(
-                prompt,
-                generation_config=genai.types.GenerationConfig(
+            if self.is_azure:
+                # For Azure, use deployment name instead of model name
+                response = self.client.chat.completions.create(
+                    model="gpt-4-turbo",  # This should match your Azure deployment name
+                    messages=[{"role": "user", "content": prompt}],
                     temperature=temperature,
-                    max_output_tokens=4096,
+                    max_tokens=max_tokens,
                 )
-            )
-            return response.text
+            else:
+                response = self.client.chat.completions.create(
+                    model="gpt-3.5-turbo",
+                    messages=[{"role": "user", "content": prompt}],
+                    temperature=temperature,
+                    max_tokens=max_tokens,
+                )
+            return response.choices[0].message.content
         except Exception as e:
-            logger.error(f"Error generating content with Gemini: {str(e)}")
+            logger.error(f"Error generating content with OpenAI: {str(e)}")
             return None
 
     def extract_requirements(self, document_content: str) -> Optional[str]:
@@ -104,7 +124,7 @@ class GeminiClient:
         
         Generate complete, production-ready code.
         """
-        return self.generate_content(prompt, temperature=0.5)
+        return self.generate_content(prompt, temperature=0.5, max_tokens=4000)
 
     def generate_page_objects(self, application_description: str, test_cases: str) -> Optional[str]:
         """Generate page object models"""
@@ -126,7 +146,7 @@ class GeminiClient:
         
         Generate complete page object classes.
         """
-        return self.generate_content(prompt, temperature=0.5)
+        return self.generate_content(prompt, temperature=0.5, max_tokens=3000)
 
     def generate_step_definitions(self, feature_content: str, page_objects: str) -> Optional[str]:
         """Generate BDD step definitions"""
@@ -148,7 +168,7 @@ class GeminiClient:
         
         Generate complete step definition code.
         """
-        return self.generate_content(prompt, temperature=0.5)
+        return self.generate_content(prompt, temperature=0.5, max_tokens=3000)
 
     def generate_feature_file(self, test_cases: str, requirements: str) -> Optional[str]:
         """Generate BDD feature file"""
@@ -170,7 +190,7 @@ class GeminiClient:
         
         Generate a complete feature file.
         """
-        return self.generate_content(prompt, temperature=0.5)
+        return self.generate_content(prompt, temperature=0.5, max_tokens=2000)
 
     def generate_test_data(self, test_cases: str, data_requirements: str) -> Optional[str]:
         """Generate test data"""
@@ -192,7 +212,7 @@ class GeminiClient:
         
         Generate comprehensive test data.
         """
-        return self.generate_content(prompt, temperature=0.5)
+        return self.generate_content(prompt, temperature=0.5, max_tokens=2000)
 
     def select_framework(self, application_type: str, requirements: str) -> Optional[str]:
         """Recommend automation framework"""
@@ -213,4 +233,4 @@ class GeminiClient:
         """
         return self.generate_content(prompt, temperature=0.3)
 
-gemini_client = GeminiClient()
+openai_client = OpenAIClient()

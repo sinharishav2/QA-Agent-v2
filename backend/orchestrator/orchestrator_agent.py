@@ -94,7 +94,11 @@ class OrchestratorAgent:
             try:
                 agent = self.agent_registry.get("RequirementExtractionAgent")
                 if agent:
-                    result = agent.execute(doc)
+                    input_data = {
+                        "document_id": doc.get("document_id"),
+                        "parsed_content": doc.get("parsed_content", {})
+                    }
+                    result = agent.execute(input_data)
                     requirements.extend(result.get('requirements', []))
                     self._log_step(workflow_id, "RequirementExtraction", "success", result)
             except Exception as e:
@@ -111,13 +115,20 @@ class OrchestratorAgent:
             try:
                 agent = self.agent_registry.get("TestCaseExtractionAgent")
                 if agent:
-                    result = agent.execute(doc)
-                    test_cases.extend(result.get('test_cases', []))
+                    input_data = {
+                        "document_id": doc.get("document_id"),
+                        "parsed_content": doc.get("parsed_content", {})
+                    }
+                    result = agent.execute(input_data)
+                    extracted = result.get('test_cases', [])
+                    self.logger.info(f"Extracted {len(extracted)} test cases from document")
+                    test_cases.extend(extracted)
                     self._log_step(workflow_id, "TestCaseExtraction", "success", result)
             except Exception as e:
                 self.logger.error(f"Test case extraction failed: {str(e)}")
                 self._log_step(workflow_id, "TestCaseExtraction", "failed", {"error": str(e)})
 
+        self.logger.info(f"Total test cases after extraction: {len(test_cases)}")
         return test_cases
 
     def _execute_test_design(self, workflow_id: str, test_cases: List[Dict[str, Any]]) -> Dict[str, Any]:

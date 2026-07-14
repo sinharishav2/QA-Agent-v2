@@ -1,8 +1,14 @@
 from docx import Document
-import pandas as pd
 from typing import Dict, List, Any
 from loguru import logger
 import json
+
+try:
+    import pandas as pd
+    PANDAS_AVAILABLE = True
+except ImportError:
+    PANDAS_AVAILABLE = False
+    logger.warning("pandas not installed. Excel parsing will be unavailable.")
 
 
 class DocumentParser:
@@ -44,6 +50,10 @@ class DocumentParser:
             raise
 
     def parse_excel(self, file_path: str) -> Dict[str, Any]:
+        if not PANDAS_AVAILABLE:
+            self.logger.warning("pandas not available. Returning empty Excel data.")
+            return {"sheets": {}, "sheet_names": []}
+        
         try:
             excel_file = pd.ExcelFile(file_path)
             sheets = {}
@@ -67,5 +77,28 @@ class DocumentParser:
             return self.parse_docx(file_path)
         elif file_path.endswith('.xlsx') or file_path.endswith('.xls'):
             return self.parse_excel(file_path)
+        elif file_path.endswith('.txt'):
+            return self.parse_text(file_path)
         else:
             raise ValueError(f"Unsupported file type: {file_path}")
+    
+    def parse_text(self, file_path: str) -> Dict[str, Any]:
+        try:
+            with open(file_path, 'r', encoding='utf-8') as f:
+                content = f.read()
+            
+            paragraphs = [p.strip() for p in content.split('\n\n') if p.strip()]
+            lines = [line.strip() for line in content.split('\n') if line.strip()]
+            
+            self.logger.info(f"Successfully parsed TXT: {file_path}")
+            
+            return {
+                "paragraphs": paragraphs,
+                "lines": lines,
+                "headings": [],
+                "tables": [],
+                "content": content
+            }
+        except Exception as e:
+            self.logger.error(f"Error parsing TXT {file_path}: {str(e)}")
+            raise
