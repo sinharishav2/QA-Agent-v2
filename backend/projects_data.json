@@ -12185,5 +12185,920 @@
         }
       ]
     }
+  },
+  "4d601a6f-8548-49cd-8702-cfbe2391329d": {
+    "project_id": "4d601a6f-8548-49cd-8702-cfbe2391329d",
+    "project_name": "abc",
+    "description": "QA Automation Project",
+    "status": "automation_generated",
+    "created_at": "2026-07-20T11:39:16.820867",
+    "updated_at": "2026-07-20T11:42:55.379705",
+    "automation_framework": "java",
+    "generated_artifacts": {
+      "test_cases": [
+        {
+          "test_id": "TC-001",
+          "scenario": "User Registration",
+          "preconditions": [
+            "Scenario: Users must register with a valid email address and a password of at least 8 characters.",
+            "Preconditions: User is on the registration page.",
+            "Steps:",
+            "Expected Results: A confirmation email is sent with a link that expires in 24 hours.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter a valid email address.",
+            "Enter a password of at least 8 characters.",
+            "Submit the registration form."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Registration"
+        },
+        {
+          "test_id": "TC-002",
+          "scenario": "User Login",
+          "preconditions": [
+            "Scenario: Registered users can log in with their email and password.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: User is redirected to the dashboard.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the login page.",
+            "Enter registered email address.",
+            "Enter the correct password."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        },
+        {
+          "test_id": "TC-003",
+          "scenario": "User Login - Account Lock",
+          "preconditions": [
+            "Scenario: Account locks after three failed login attempts.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: Account is locked for 15 minutes after the third failed attempt.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the login page.",
+            "Enter registered email address.",
+            "Enter incorrect password (repeat this step three times)."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        },
+        {
+          "test_id": "TC-004",
+          "scenario": "Password Reset",
+          "preconditions": [
+            "Scenario: Users can request a password-reset link via email.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: A password-reset link is sent to the email that expires after 24 hours and can only be used once.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the password reset page.",
+            "Enter the registered email address.",
+            "Submit the request."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "CoreFunctionality"
+        },
+        {
+          "test_id": "TC-005",
+          "scenario": "User Logout",
+          "preconditions": [
+            "Scenario: Authenticated users can log out at any time.",
+            "Preconditions: User is logged in.",
+            "Steps:",
+            "Expected Results: User is logged out and the session is invalidated server-side immediately.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Click on the logout button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        },
+        {
+          "test_id": "TC-006",
+          "scenario": "Product Listing",
+          "preconditions": [
+            "Scenario: Display products with relevant details.",
+            "Preconditions: User is on the product listing page.",
+            "Steps:",
+            "Expected Results: Products are displayed with thumbnail, name, price, and rating, paginated at 12 items per page.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the product listing page."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ProductCatalog"
+        },
+        {
+          "test_id": "TC-007",
+          "scenario": "Product Search",
+          "preconditions": [
+            "Scenario: Full-text search across product name and description.",
+            "Preconditions: User is on the product listing page.",
+            "Steps:",
+            "Expected Results: Results appear within 2 seconds; show 'No results found' for zero matches.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter a search term in the search bar.",
+            "Click on the search button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ProductCatalog"
+        },
+        {
+          "test_id": "TC-008",
+          "scenario": "Product Details",
+          "preconditions": [
+            "Scenario: View details of a specific product.",
+            "Preconditions: User is on the product listing page.",
+            "Steps:",
+            "Expected Results: Product page shows description, specifications, stock level, customer reviews (with ratings), and related products.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Click on a product to view its details."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ProductCatalog"
+        },
+        {
+          "test_id": "TC-009",
+          "scenario": "Add to Cart",
+          "preconditions": [
+            "Scenario: Authenticated users can add products to their cart.",
+            "Preconditions: User is logged in and product is in stock.",
+            "Steps:",
+            "Expected Results: The product is added to the cart and persists across browser sessions.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to a product page.",
+            "Click on the 'Add to Cart' button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ShoppingCart"
+        },
+        {
+          "test_id": "TC-010",
+          "scenario": "Update Cart",
+          "preconditions": [
+            "Scenario: Users can change item quantity or remove items from the cart.",
+            "Preconditions: User has items in the cart.",
+            "Steps:",
+            "Expected Results: Cart total updates in real time.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the cart page.",
+            "Change the quantity of an item (1\u201399) or remove an item."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ShoppingCart"
+        },
+        {
+          "test_id": "TC-011",
+          "scenario": "Cart Summary",
+          "preconditions": [
+            "Scenario: Display cart summary details.",
+            "Preconditions: User has items in the cart.",
+            "Steps:",
+            "Expected Results: Display subtotal, applicable taxes, estimated shipping, and grand total.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the cart page."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ShoppingCart"
+        },
+        {
+          "test_id": "TC-012",
+          "scenario": "Shipping Address",
+          "preconditions": [
+            "Scenario: Users must provide a valid shipping address.",
+            "Preconditions: User is in the checkout process.",
+            "Steps:",
+            "Expected Results: Shipping address is accepted and saved for the order.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter a valid shipping address or select a previously saved address."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "CoreFunctionality"
+        },
+        {
+          "test_id": "TC-013",
+          "scenario": "Payment Processing",
+          "preconditions": [
+            "Scenario: Support credit/debit card payments via Stripe.",
+            "Preconditions: User is in the checkout process.",
+            "Steps:",
+            "Expected Results: Payment is processed, and card details are not stored on the platform's servers.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter credit/debit card details.",
+            "Submit the payment."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Checkout"
+        },
+        {
+          "test_id": "TC-014",
+          "scenario": "Order Confirmation",
+          "preconditions": [
+            "Scenario: Show order confirmation after successful payment.",
+            "Preconditions: Payment has been successfully processed.",
+            "Steps:",
+            "Expected Results: Order confirmation page is displayed, and a confirmation email is sent within 30 seconds.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Redirect to the order confirmation page."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Checkout"
+        },
+        {
+          "test_id": "TC-001",
+          "scenario": "Successful Registration",
+          "preconditions": [
+            "**Scenario:** User registers with a new email.",
+            "**Preconditions:** Registration page is open; Email is not already registered.",
+            "**Steps:**",
+            "**Expected Results:** User is redirected to a success page; Toast message: 'Registration successful. Please check your email.' Confirmation email is received within 60 seconds.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to /register",
+            "Enter email: newuser@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Registration"
+        },
+        {
+          "test_id": "TC-002",
+          "scenario": "Registration with Duplicate Email",
+          "preconditions": [
+            "**Scenario:** User attempts to register with an already registered email.",
+            "**Preconditions:** An account with email duplicate@example.com already exists.",
+            "**Steps:**",
+            "**Expected Results:** Error message: 'An account with this email already exists.' User remains on the registration page; No confirmation email is sent.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to /register",
+            "Enter email: duplicate@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Registration"
+        },
+        {
+          "test_id": "TC-003",
+          "scenario": "Successful Login",
+          "preconditions": [
+            "**Scenario:** User logs in with valid credentials.",
+            "**Preconditions:** User account exists and email is confirmed.",
+            "**Steps:**",
+            "**Expected Results:** User is redirected to /dashboard; Welcome message displays the user's name; Navigation bar shows 'Logout' link.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to /login",
+            "Enter email: testuser@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        },
+        {
+          "test_id": "TC-004",
+          "scenario": "Login with Invalid Password",
+          "preconditions": [
+            "**Scenario:** User attempts to log in with an incorrect password.",
+            "**Preconditions:** User account exists.",
+            "**Steps:**",
+            "**Expected Results:** Error message: 'Invalid email or password.' User remains on /login; Password field is cleared.",
+            "**Priority:** Medium"
+          ],
+          "steps": [
+            "Navigate to /login",
+            "Enter email: testuser@example.com",
+            "Enter password: WrongPassword"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        },
+        {
+          "test_id": "TC-005",
+          "scenario": "Search for Product",
+          "preconditions": [
+            "**Scenario:** User searches for a product that exists in the catalogue.",
+            "**Preconditions:** At least one product named 'Laptop' exists in the catalogue.",
+            "**Steps:**",
+            "**Expected Results:** Search results page loads within 2 seconds; Results contain at least one product with 'Laptop' in its name; Result count is displayed.",
+            "**Priority:** Medium"
+          ],
+          "steps": [
+            "Navigate to the home page",
+            "Type 'Laptop' in the search bar",
+            "Press Enter or click the search icon"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ProductCatalog"
+        },
+        {
+          "test_id": "TC-006",
+          "scenario": "Add Product to Cart",
+          "preconditions": [
+            "**Scenario:** User adds a product to the cart while logged in.",
+            "**Preconditions:** User is logged in; Product 'Laptop Pro 15' is in stock.",
+            "**Steps:**",
+            "**Expected Results:** Success notification: 'Item added to cart.' Cart icon counter updates to reflect new item count; Cart contains 2 units of 'Laptop Pro 15'.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to the product detail page of 'Laptop Pro 15'",
+            "Set quantity to 2",
+            "Click 'Add to Cart'"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ShoppingCart"
+        },
+        {
+          "test_id": "TC-007",
+          "scenario": "Remove Item from Cart",
+          "preconditions": [
+            "**Scenario:** User removes an item from the cart.",
+            "**Preconditions:** User is logged in; Cart contains at least one item.",
+            "**Steps:**",
+            "**Expected Results:** Item is removed from the cart; Cart total is recalculated immediately; If cart is empty, display 'Your cart is empty.' message.",
+            "**Priority:** Medium"
+          ],
+          "steps": [
+            "Navigate to /cart",
+            "Click the 'Remove' icon next to the first item",
+            "Confirm removal in the dialog"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "ShoppingCart"
+        },
+        {
+          "test_id": "TC-008",
+          "scenario": "Checkout Process",
+          "preconditions": [
+            "**Scenario:** User proceeds to checkout with valid payment details.",
+            "**Preconditions:** User is logged in; Cart has at least one item; Valid payment details available.",
+            "**Steps:**",
+            "**Expected Results:** Order confirmation page is displayed with order ID; Confirmation email arrives within 30 seconds; Cart is emptied.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to /cart and click 'Proceed to Checkout'",
+            "Enter shipping address",
+            "Enter card number: 4242 4242 4242 4242, Exp: 12/27, CVV: 123"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Checkout"
+        },
+        {
+          "test_id": "TC-009",
+          "scenario": "Password Reset",
+          "preconditions": [
+            "**Scenario:** User resets their password.",
+            "**Preconditions:** User account exists with email reset@example.com.",
+            "**Steps:**",
+            "**Expected Results:** Success message: 'Password reset successfully.' User can log in with the new password; Old password no longer works.",
+            "**Priority:** High"
+          ],
+          "steps": [
+            "Navigate to /forgot-password",
+            "Enter email: reset@example.com",
+            "Click 'Send Reset Link'"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "CoreFunctionality"
+        },
+        {
+          "test_id": "TC-010",
+          "scenario": "Account Lockout After Failed Login Attempts",
+          "preconditions": [
+            "**Scenario:** User's account is locked after multiple failed login attempts.",
+            "**Preconditions:** User account exists.",
+            "**Steps:**",
+            "**Expected Results:** After 3rd failure: 'Account locked for 15 minutes.' 4th attempt (even with correct password) shows the same lockout message; Account unlocks after 15 minutes.",
+            "**Priority:** Medium"
+          ],
+          "steps": [
+            "Attempt login with wrong password three times in a row",
+            "On the 4th attempt, try correct credentials"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "Authentication"
+        }
+      ],
+      "feature_files": [
+        {
+          "feature_id": "47e29495-cb52-470a-90ad-12fa850f7227",
+          "feature_name": "Authentication",
+          "filename": "Authentication.feature",
+          "content": "Feature: User Authentication\n  @module-authentication\n  @req-002\n  Background:\n    Given the user is on the login page\n\n  Scenario: User Login\n    @smoke @module-authentication @req-002\n    When the user enters registered email address \"testuser@example.com\"\n    And the user enters the correct password \"SecurePass@1\"\n    Then the user is redirected to the dashboard\n    And the welcome message displays the user's name\n    And the navigation bar shows \"Logout\" link\n\n  Scenario: User Login - Account Lock\n    @regression @module-authentication @req-002\n    When the user enters registered email address \"testuser@example.com\"\n    And the user enters incorrect password \"WrongPassword\"\n    And the user enters incorrect password \"WrongPassword\"\n    And the user enters incorrect password \"WrongPassword\"\n    Then the account is locked for 15 minutes after the third failed attempt\n\n  Scenario: User Logout\n    @smoke @module-authentication @req-004\n    Given the user is logged in\n    When the user clicks on the logout button\n    Then the user is logged out\n    And the session is invalidated server-side immediately\n\n  Scenario: Password Reset\n    @smoke @module-authentication @req-003\n    Given the user has a registered account\n    When the user navigates to the password reset page\n    And the user enters the registered email address \"reset@example.com\"\n    And the user submits the request\n    Then a password-reset link is sent to the email\n    And the link expires after 24 hours and can only be used once\n\n  Scenario: Login with Invalid Password\n    @regression @module-authentication @req-002\n    When the user enters registered email address \"testuser@example.com\"\n    And the user enters incorrect password \"WrongPassword\"\n    Then the error message should be \"Invalid email or password.\"\n    And the user remains on the login page\n    And the password field is cleared"
+        },
+        {
+          "feature_id": "5cb35f8f-e18e-4c18-b9a6-8ed05a1ddb8c",
+          "feature_name": "Registration",
+          "filename": "Registration.feature",
+          "content": "Feature: User Registration\n  @module-registration\n  @req-001\n  Background:\n    Given the registration page is open\n\n  Scenario: User Registration\n    @smoke @module-registration @req-001\n    When the user enters a valid email address \"newuser@example.com\"\n    And the user enters a password of at least 8 characters \"SecurePass@1\"\n    And the user submits the registration form\n    Then the user is redirected to a success page\n    And the toast message should be \"Registration successful. Please check your email.\"\n    And the confirmation email is received within 60 seconds\n\n  Scenario: Registration with Duplicate Email\n    @negative @module-registration @req-001\n    When the user enters email \"duplicate@example.com\"\n    And the user enters password \"SecurePass@1\"\n    And the user submits the registration form\n    Then the error message should be \"An account with this email already exists.\"\n    And the user remains on the registration page\n    And no confirmation email is sent"
+        },
+        {
+          "feature_id": "cd21b532-e2a7-4557-b6a6-452eee427cce",
+          "feature_name": "ProductCatalog",
+          "filename": "ProductCatalog.feature",
+          "content": "Feature: Product Catalog Management\n  @module-productcatalog\n  @req-005\n  Background:\n    Given the user is on the product listing page\n\n  Scenario: Product Listing\n    @smoke @module-productcatalog @req-005\n    When the user navigates to the product listing page\n    Then products are displayed with thumbnail, name, price, and rating\n    And products are paginated at 12 items per page\n\n  Scenario: Product Search\n    @smoke @module-productcatalog @req-006\n    When the user enters a search term \"Laptop\" in the search bar\n    And the user clicks on the search button\n    Then the search results page loads within 2 seconds\n    And results contain at least one product with \"Laptop\" in its name\n    And the result count is displayed\n\n  Scenario: Product Details\n    @regression @module-productcatalog @req-007\n    When the user clicks on a product to view its details\n    Then the product page shows description, specifications, stock level, customer reviews (with ratings), and related products"
+        },
+        {
+          "feature_id": "823a41f3-5d03-49aa-a58a-ef4653cf1a23",
+          "feature_name": "ShoppingCart",
+          "filename": "ShoppingCart.feature",
+          "content": "Feature: Shopping Cart Management\n  @module-shoppingcart\n  @req-008\n  Background:\n    Given the user is logged in\n\n  Scenario: Add to Cart\n    @smoke @module-shoppingcart @req-008\n    When the user navigates to a product page\n    And the user clicks on the \"Add to Cart\" button\n    Then the success notification should be \"Item added to cart.\"\n    And the cart icon counter updates to reflect the new item count\n    And the cart contains 2 units of \"Laptop Pro 15\"\n\n  Scenario: Update Cart\n    @regression @module-shoppingcart @req-009\n    Given the user has items in the cart\n    When the user navigates to the cart page\n    And the user changes the quantity of an item to 2\n    Then the cart total updates in real time\n\n  Scenario: Remove Item from Cart\n    @regression @module-shoppingcart @req-009\n    Given the user has items in the cart\n    When the user navigates to /cart\n    And the user clicks the \"Remove\" icon next to the first item\n    And the user confirms removal in the dialog\n    Then the item is removed from the cart\n    And the cart total is recalculated immediately\n    And if the cart is empty, display \"Your cart is empty.\" message\n\n  Scenario: Cart Summary\n    @regression @module-shoppingcart @req-010\n    Given the user has items in the cart\n    When the user navigates to the cart page\n    Then the subtotal, applicable taxes, estimated shipping, and grand total are displayed"
+        },
+        {
+          "feature_id": "ab1fc0b5-c5d8-41b4-a2c9-994f3d0133dc",
+          "feature_name": "Checkout",
+          "filename": "Checkout.feature",
+          "content": "Feature: Checkout Process\n  @module-checkout\n  @req-012\n  Background:\n    Given the user is in the checkout process\n\n  Scenario: Payment Processing\n    @smoke @module-checkout @req-012\n    When the user enters credit/debit card details\n    And the user submits the payment\n    Then the payment is processed\n    And card details are not stored on the platform's servers\n\n  Scenario: Order Confirmation\n    @smoke @module-checkout @req-013\n    Given the payment has been successfully processed\n    When the user is redirected to the order confirmation page\n    Then the order confirmation page is displayed\n    And a confirmation email is sent within 30 seconds"
+        },
+        {
+          "feature_id": "03a2eb59-3105-4dc8-ab24-73ad0225e52f",
+          "feature_name": "CoreFunctionalities",
+          "filename": "CoreFunctionalities.feature",
+          "content": "Feature: Core Functionalities\n  @module-corefunctionality\n  @req-011\n  Background:\n    Given the user is in the checkout process\n\n  Scenario: Shipping Address\n    @smoke @module-corefunctionality @req-011\n    When the user enters a valid shipping address\n    Or the user selects a previously saved address\n    Then the shipping address is accepted and saved for the order\n\n  Scenario: Password Reset\n    @smoke @module-corefunctionality @req-003\n    Given the user has a registered account with email \"reset@example.com\"\n    When the user navigates to /forgot-password\n    And the user enters email \"reset@example.com\"\n    And the user clicks \"Send Reset Link\"\n    Then the success message should be \"Password reset successfully.\"\n    And the user can log in with the new password\n    And the old password no longer works"
+        }
+      ],
+      "page_objects": [
+        {
+          "page_id": "5f38b560-1f41-497d-928b-f2459ec5abf1",
+          "class_name": "BasePage",
+          "page_name": "BasePage",
+          "filename": "BasePage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\nimport org.openqa.selenium.support.PageFactory;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class BasePage {\n    protected WebDriver driver;\n    protected WebDriverWait wait;\n\n    public BasePage(WebDriver driver) {\n        this.driver = driver;\n        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));\n        PageFactory.initElements(driver, this);\n    }\n\n    protected void waitForElementVisible(By locator) {\n        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));\n    }\n\n    protected void waitForElementClickable(By locator) {\n        wait.until(ExpectedConditions.elementToBeClickable(locator));\n    }\n\n    protected String getText(WebElement element) {\n        return element.getText();\n    }\n\n    protected boolean isElementPresent(By locator) {\n        return driver.findElements(locator).size() > 0;\n    }\n}"
+        },
+        {
+          "page_id": "020ce2cc-54b9-4e84-aabe-0673f9312904",
+          "class_name": "RegistrationPage",
+          "page_name": "RegistrationPage",
+          "filename": "RegistrationPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class RegistrationPage extends BasePage {\n\n    @FindBy(id = \"email\")\n    private WebElement emailField;\n\n    @FindBy(id = \"password\")\n    private WebElement passwordField;\n\n    @FindBy(id = \"confirmPassword\")\n    private WebElement confirmPasswordField;\n\n    @FindBy(id = \"registerButton\")\n    private WebElement registerButton;\n\n    @FindBy(css = \".toast-message\")\n    private WebElement toastMessage;\n\n    @FindBy(css = \".error-message\")\n    private WebElement errorMessage;\n\n    public RegistrationPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Enters a valid email address and password to register a new user.\n     */\n    public void registerUser(String email, String password) {\n        waitForElementVisible(By.id(\"email\"));\n        emailField.sendKeys(email);\n        passwordField.sendKeys(password);\n        confirmPasswordField.sendKeys(password);\n        waitForElementClickable(By.id(\"registerButton\"));\n        registerButton.click();\n    }\n\n    /**\n     * Returns the toast message after registration.\n     */\n    public String getToastMessage() {\n        waitForElementVisible(By.cssSelector(\".toast-message\"));\n        return getText(toastMessage);\n    }\n\n    /**\n     * Returns the error message if registration fails.\n     */\n    public String getErrorMessage() {\n        waitForElementVisible(By.cssSelector(\".error-message\"));\n        return getText(errorMessage);\n    }\n}"
+        },
+        {
+          "page_id": "d4b5bbe6-7846-42ae-89ad-04553a83451f",
+          "class_name": "AuthenticationPage",
+          "page_name": "AuthenticationPage",
+          "filename": "AuthenticationPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class AuthenticationPage extends BasePage {\n\n    @FindBy(id = \"email\")\n    private WebElement emailField;\n\n    @FindBy(id = \"password\")\n    private WebElement passwordField;\n\n    @FindBy(id = \"loginButton\")\n    private WebElement loginButton;\n\n    @FindBy(css = \".error-message\")\n    private WebElement errorMessage;\n\n    public AuthenticationPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Logs in a user with the provided email and password.\n     */\n    public void loginUser(String email, String password) {\n        waitForElementVisible(By.id(\"email\"));\n        emailField.sendKeys(email);\n        passwordField.sendKeys(password);\n        waitForElementClickable(By.id(\"loginButton\"));\n        loginButton.click();\n    }\n\n    /**\n     * Returns the error message if login fails.\n     */\n    public String getErrorMessage() {\n        waitForElementVisible(By.cssSelector(\".error-message\"));\n        return getText(errorMessage);\n    }\n}"
+        },
+        {
+          "page_id": "2e6ecabc-de79-4705-88dd-bc6e539d1b0a",
+          "class_name": "ProductCatalogPage",
+          "page_name": "ProductCatalogPage",
+          "filename": "ProductCatalogPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class ProductCatalogPage extends BasePage {\n\n    @FindBy(id = \"searchBar\")\n    private WebElement searchBar;\n\n    @FindBy(id = \"searchButton\")\n    private WebElement searchButton;\n\n    @FindBy(css = \".product-item\")\n    private WebElement productItem;\n\n    public ProductCatalogPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Searches for a product using the search bar.\n     */\n    public void searchProduct(String productName) {\n        waitForElementVisible(By.id(\"searchBar\"));\n        searchBar.sendKeys(productName);\n        waitForElementClickable(By.id(\"searchButton\"));\n        searchButton.click();\n    }\n\n    /**\n     * Clicks on the first product in the catalog.\n     */\n    public void selectFirstProduct() {\n        waitForElementClickable(By.cssSelector(\".product-item\"));\n        productItem.click();\n    }\n}"
+        },
+        {
+          "page_id": "8ef63c81-563e-42d2-a564-9adbeb328b67",
+          "class_name": "ShoppingCartPage",
+          "page_name": "ShoppingCartPage",
+          "filename": "ShoppingCartPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class ShoppingCartPage extends BasePage {\n\n    @FindBy(id = \"cartItems\")\n    private WebElement cartItems;\n\n    @FindBy(id = \"proceedToCheckout\")\n    private WebElement proceedToCheckoutButton;\n\n    public ShoppingCartPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Proceeds to the checkout process from the shopping cart.\n     */\n    public void proceedToCheckout() {\n        waitForElementClickable(By.id(\"proceedToCheckout\"));\n        proceedToCheckoutButton.click();\n    }\n}"
+        },
+        {
+          "page_id": "f9e5c4b6-c29a-4cea-8ff8-e991668d7733",
+          "class_name": "CheckoutPage",
+          "page_name": "CheckoutPage",
+          "filename": "CheckoutPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class CheckoutPage extends BasePage {\n\n    @FindBy(id = \"shippingAddress\")\n    private WebElement shippingAddressField;\n\n    @FindBy(id = \"cardNumber\")\n    private WebElement cardNumberField;\n\n    @FindBy(id = \"expiryDate\")\n    private WebElement expiryDateField;\n\n    @FindBy(id = \"cvv\")\n    private WebElement cvvField;\n\n    @FindBy(id = \"submitPayment\")\n    private WebElement submitPaymentButton;\n\n    public CheckoutPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Enters shipping address and payment details to complete the checkout.\n     */\n    public void completeCheckout(String address, String cardNumber, String expiryDate, String cvv) {\n        waitForElementVisible(By.id(\"shippingAddress\"));\n        shippingAddressField.sendKeys(address);\n        cardNumberField.sendKeys(cardNumber);\n        expiryDateField.sendKeys(expiryDate);\n        cvvField.sendKeys(cvv);\n        waitForElementClickable(By.id(\"submitPayment\"));\n        submitPaymentButton.click();\n    }\n}"
+        },
+        {
+          "page_id": "5ae83854-d3a9-428d-9368-0dc5923e39ac",
+          "class_name": "OrderConfirmationPage",
+          "page_name": "OrderConfirmationPage",
+          "filename": "OrderConfirmationPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class OrderConfirmationPage extends BasePage {\n\n    @FindBy(css = \".confirmation-message\")\n    private WebElement confirmationMessage;\n\n    public OrderConfirmationPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Returns the order confirmation message after a successful order.\n     */\n    public String getConfirmationMessage() {\n        waitForElementVisible(By.cssSelector(\".confirmation-message\"));\n        return getText(confirmationMessage);\n    }\n}"
+        },
+        {
+          "page_id": "c510b337-debd-419a-b8b1-7444e2d294a2",
+          "class_name": "CoreFunctionalityPage",
+          "page_name": "CoreFunctionalityPage",
+          "filename": "CoreFunctionalityPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.WebDriver;\n\npublic class CoreFunctionalityPage extends BasePage {\n\n    public CoreFunctionalityPage(WebDriver driver) {\n        super(driver);\n    }\n\n    // This page can be used for common functionalities that span multiple pages.\n}"
+        }
+      ],
+      "step_definitions": [
+        {
+          "step_id": "879ea2dc-0598-45a8-8b55-544fb24e57d3",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.AuthenticationPage;\nimport pages.CoreFunctionalityPage;\n\npublic class AuthenticationSteps {\n    private final AuthenticationPage authenticationPage;\n    private final CoreFunctionalityPage coreFunctionalityPage;\n\n    public AuthenticationSteps(AuthenticationPage authenticationPage, CoreFunctionalityPage coreFunctionalityPage) {\n        this.authenticationPage = authenticationPage;\n        this.coreFunctionalityPage = coreFunctionalityPage;\n    }\n\n    @Given(\"the user is on the login page\")\n    public void the_user_is_on_the_login_page() {\n        coreFunctionalityPage.navigateToLoginPage();\n    }\n\n    @When(\"the user enters registered email address {string}\")\n    public void the_user_enters_registered_email_address(String email) {\n        authenticationPage.loginUser(email, null);\n    }\n\n    @When(\"the user enters the correct password {string}\")\n    public void the_user_enters_the_correct_password(String password) {\n        authenticationPage.loginUser(null, password);\n    }\n\n    @Then(\"the user is redirected to the dashboard\")\n    public void the_user_is_redirected_to_the_dashboard() {\n        Assert.assertTrue(\"User should be redirected to the dashboard\", coreFunctionalityPage.isDashboardVisible());\n    }\n\n    @Then(\"the welcome message displays the user's name\")\n    public void the_welcome_message_displays_the_user_s_name() {\n        String expectedMessage = \"Welcome, Test User!\";\n        String actualMessage = coreFunctionalityPage.getWelcomeMessage();\n        Assert.assertEquals(\"Expected welcome message\", expectedMessage, actualMessage);\n    }\n\n    @Then(\"the navigation bar shows {string} link\")\n    public void the_navigation_bar_shows_link(String linkText) {\n        Assert.assertTrue(\"Navigation bar should show \" + linkText + \" link\", coreFunctionalityPage.isLinkVisible(linkText));\n    }\n\n    @When(\"the user enters incorrect password {string}\")\n    public void the_user_enters_incorrect_password(String password) {\n        authenticationPage.loginUser(null, password);\n    }\n\n    @Then(\"the account is locked for {int} minutes after the third failed attempt\")\n    public void the_account_is_locked_for_minutes_after_the_third_failed_attempt(int minutes) {\n        Assert.assertTrue(\"Account should be locked for \" + minutes + \" minutes\", authenticationPage.isAccountLocked(minutes));\n    }\n\n    @Given(\"the user is logged in\")\n    public void the_user_is_logged_in() {\n        authenticationPage.loginUser(\"testuser@example.com\", \"SecurePass@1\");\n    }\n\n    @When(\"the user clicks on the logout button\")\n    public void the_user_clicks_on_the_logout_button() {\n        coreFunctionalityPage.clickLogoutButton();\n    }\n\n    @Then(\"the user is logged out\")\n    public void the_user_is_logged_out() {\n        Assert.assertTrue(\"User should be logged out\", coreFunctionalityPage.isLoginPageVisible());\n    }\n\n    @Then(\"the session is invalidated server-side immediately\")\n    public void the_session_is_invalidated_server_side_immediately() {\n        Assert.assertTrue(\"Session should be invalidated\", authenticationPage.isSessionInvalidated());\n    }\n\n    @Given(\"the user has a registered account\")\n    public void the_user_has_a_registered_account() {\n        // Assuming registration is handled elsewhere\n    }\n\n    @When(\"the user navigates to the password reset page\")\n    public void the_user_navigates_to_the_password_reset_page() {\n        coreFunctionalityPage.navigateToPasswordResetPage();\n    }\n\n    @When(\"the user enters the registered email address {string}\")\n    public void the_user_enters_the_registered_email_address(String email) {\n        authenticationPage.submitPasswordResetRequest(email);\n    }\n\n    @When(\"the user submits the request\")\n    public void the_user_submits_the_request() {\n        authenticationPage.submitPasswordReset();\n    }\n\n    @Then(\"a password-reset link is sent to the email\")\n    public void a_password_reset_link_is_sent_to_the_email() {\n        Assert.assertTrue(\"Password reset link should be sent\", authenticationPage.isPasswordResetLinkSent());\n    }\n\n    @Then(\"the link expires after {int} hours and can only be used once\")\n    public void the_link_expires_after_hours_and_can_only_be_used_once(int hours) {\n        Assert.assertTrue(\"Link should expire after \" + hours + \" hours\", authenticationPage.isLinkExpired(hours));\n    }\n\n    @Then(\"the error message should be {string}\")\n    public void the_error_message_should_be(String expectedErrorMessage) {\n        String actualErrorMessage = authenticationPage.getErrorMessage();\n        Assert.assertEquals(\"Expected error message\", expectedErrorMessage, actualErrorMessage);\n    }\n\n    @Then(\"the user remains on the login page\")\n    public void the_user_remains_on_the_login_page() {\n        Assert.assertTrue(\"User should remain on the login page\", coreFunctionalityPage.isLoginPageVisible());\n    }\n\n    @Then(\"the password field is cleared\")\n    public void the_password_field_is_cleared() {\n        Assert.assertTrue(\"Password field should be cleared\", authenticationPage.isPasswordFieldCleared());\n    }\n}"
+        },
+        {
+          "step_id": "a1b7d64f-a41c-44e7-adcc-8cccf0d918a3",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.RegistrationPage;\nimport utils.ScenarioContext;\n\npublic class RegistrationSteps {\n    private final RegistrationPage registrationPage;\n\n    public RegistrationSteps(ScenarioContext scenarioContext) {\n        this.registrationPage = scenarioContext.getPageObject(RegistrationPage.class);\n    }\n\n    @Given(\"the registration page is open\")\n    public void the_registration_page_is_open() {\n        // Code to open the registration page\n    }\n\n    @When(\"the user enters a valid email address {string}\")\n    public void the_user_enters_a_valid_email_address(String email) {\n        registrationPage.registerUser(email, \"SecurePass@1\");\n    }\n\n    @When(\"the user enters a password of at least 8 characters {string}\")\n    public void the_user_enters_a_password_of_at_least_8_characters(String password) {\n        registrationPage.registerUser(\"newuser@example.com\", password);\n    }\n\n    @When(\"the user submits the registration form\")\n    public void the_user_submits_the_registration_form() {\n        // Code to submit the registration form\n    }\n\n    @Then(\"the user is redirected to a success page\")\n    public void the_user_is_redirected_to_a_success_page() {\n        // Code to verify redirection to success page\n    }\n\n    @Then(\"the toast message should be {string}\")\n    public void the_toast_message_should_be(String expectedMessage) {\n        String actualMsg = registrationPage.getToastMessage();\n        Assert.assertEquals(\"Expected success message\", expectedMessage, actualMsg);\n    }\n\n    @Then(\"the confirmation email is received within {int} seconds\")\n    public void the_confirmation_email_is_received_within_seconds(int seconds) {\n        // Code to verify email receipt within the specified time\n    }\n\n    @When(\"the user enters email {string}\")\n    public void the_user_enters_email(String email) {\n        registrationPage.registerUser(email, \"SecurePass@1\");\n    }\n\n    @When(\"the user enters password {string}\")\n    public void the_user_enters_password(String password) {\n        registrationPage.registerUser(\"duplicate@example.com\", password);\n    }\n\n    @Then(\"the error message should be {string}\")\n    public void the_error_message_should_be(String expectedErrorMessage) {\n        String actualErrorMsg = registrationPage.getErrorMessage();\n        Assert.assertEquals(\"Expected error message\", expectedErrorMessage, actualErrorMsg);\n    }\n\n    @Then(\"the user remains on the registration page\")\n    public void the_user_remains_on_the_registration_page() {\n        // Code to verify that the user is still on the registration page\n    }\n\n    @Then(\"no confirmation email is sent\")\n    public void no_confirmation_email_is_sent() {\n        // Code to verify that no confirmation email was sent\n    }\n}"
+        },
+        {
+          "step_id": "0f21f76a-c607-4603-ac0e-93042c03bb45",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.ProductCatalogPage;\nimport pages.BasePage;\n\npublic class ProductcatalogSteps {\n    private final ProductCatalogPage productCatalogPage;\n    private final BasePage basePage;\n\n    public ProductcatalogSteps(ProductCatalogPage productCatalogPage, BasePage basePage) {\n        this.productCatalogPage = productCatalogPage;\n        this.basePage = basePage;\n    }\n\n    @Given(\"the user is on the product listing page\")\n    public void the_user_is_on_the_product_listing_page() {\n        basePage.navigateToProductListingPage();\n    }\n\n    @When(\"the user navigates to the product listing page\")\n    public void the_user_navigates_to_the_product_listing_page() {\n        basePage.navigateToProductListingPage();\n    }\n\n    @Then(\"products are displayed with thumbnail, name, price, and rating\")\n    public void products_are_displayed_with_thumbnail_name_price_and_rating() {\n        Assert.assertTrue(\"Products are not displayed correctly\", productCatalogPage.areProductsDisplayed());\n    }\n\n    @Then(\"products are paginated at {int} items per page\")\n    public void products_are_paginated_at_items_per_page(int itemsPerPage) {\n        Assert.assertEquals(\"Expected pagination to be at \" + itemsPerPage + \" items per page\", itemsPerPage, productCatalogPage.getItemsPerPage());\n    }\n\n    @When(\"the user enters a search term {string} in the search bar\")\n    public void the_user_enters_a_search_term_in_the_search_bar(String searchTerm) {\n        productCatalogPage.searchProduct(searchTerm);\n    }\n\n    @When(\"the user clicks on the search button\")\n    public void the_user_clicks_on_the_search_button() {\n        productCatalogPage.clickSearchButton();\n    }\n\n    @Then(\"the search results page loads within {int} seconds\")\n    public void the_search_results_page_loads_within_seconds(int seconds) {\n        Assert.assertTrue(\"Search results page did not load within \" + seconds + \" seconds\", basePage.isPageLoadedWithin(seconds));\n    }\n\n    @Then(\"results contain at least one product with {string} in its name\")\n    public void results_contain_at_least_one_product_with_in_its_name(String productName) {\n        Assert.assertTrue(\"No products found with name containing: \" + productName, productCatalogPage.doesProductExistInResults(productName));\n    }\n\n    @Then(\"the result count is displayed\")\n    public void the_result_count_is_displayed() {\n        Assert.assertTrue(\"Result count is not displayed\", productCatalogPage.isResultCountDisplayed());\n    }\n\n    @When(\"the user clicks on a product to view its details\")\n    public void the_user_clicks_on_a_product_to_view_its_details() {\n        productCatalogPage.selectFirstProduct();\n    }\n\n    @Then(\"the product page shows description, specifications, stock level, customer reviews (with ratings), and related products\")\n    public void the_product_page_shows_description_specifications_stock_level_customer_reviews_with_ratings_and_related_products() {\n        Assert.assertTrue(\"Product details are not displayed correctly\", productCatalogPage.isProductDetailsDisplayed());\n    }\n}"
+        },
+        {
+          "step_id": "25a819e2-ec55-4771-8ab4-54f509b2f636",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.BasePage;\nimport pages.ProductCatalogPage;\nimport pages.ShoppingCartPage;\n\npublic class ShoppingcartSteps {\n    private BasePage basePage;\n    private ProductCatalogPage productCatalogPage;\n    private ShoppingCartPage shoppingCartPage;\n\n    public ShoppingcartSteps(BasePage basePage, ProductCatalogPage productCatalogPage, ShoppingCartPage shoppingCartPage) {\n        this.basePage = basePage;\n        this.productCatalogPage = productCatalogPage;\n        this.shoppingCartPage = shoppingCartPage;\n    }\n\n    @Given(\"the user is logged in\")\n    public void the_user_is_logged_in() {\n        // Implementation for user login\n    }\n\n    @When(\"the user navigates to a product page\")\n    public void the_user_navigates_to_a_product_page() {\n        productCatalogPage.selectFirstProduct();\n    }\n\n    @When(\"the user clicks on the {string} button\")\n    public void the_user_clicks_on_the_button(String button) {\n        if (\"Add to Cart\".equalsIgnoreCase(button)) {\n            // Implementation for clicking the Add to Cart button\n        }\n    }\n\n    @Then(\"the success notification should be {string}.\")\n    public void the_success_notification_should_be(String expectedMessage) {\n        String actualMsg = basePage.getToastMessage();\n        Assert.assertEquals(\"Expected success notification message\", expectedMessage, actualMsg);\n    }\n\n    @Then(\"the cart icon counter updates to reflect the new item count\")\n    public void the_cart_icon_counter_updates_to_reflect_the_new_item_count() {\n        // Implementation for checking cart icon counter\n    }\n\n    @Then(\"the cart contains {int} units of {string}\")\n    public void the_cart_contains_units_of(int quantity, String productName) {\n        // Implementation for verifying cart contents\n    }\n\n    @Given(\"the user has items in the cart\")\n    public void the_user_has_items_in_the_cart() {\n        // Implementation for adding items to the cart\n    }\n\n    @When(\"the user navigates to the cart page\")\n    public void the_user_navigates_to_the_cart_page() {\n        // Implementation for navigating to the cart page\n    }\n\n    @When(\"the user changes the quantity of an item to {int}\")\n    public void the_user_changes_the_quantity_of_an_item_to(int quantity) {\n        // Implementation for changing item quantity\n    }\n\n    @Then(\"the cart total updates in real time\")\n    public void the_cart_total_updates_in_real_time() {\n        // Implementation for verifying real-time cart total update\n    }\n\n    @When(\"the user navigates to {string}\")\n    public void the_user_navigates_to(String path) {\n        if (\"/cart\".equalsIgnoreCase(path)) {\n            // Implementation for navigating to the cart\n        }\n    }\n\n    @When(\"the user clicks the {string} icon next to the first item\")\n    public void the_user_clicks_the_icon_next_to_the_first_item(String icon) {\n        if (\"Remove\".equalsIgnoreCase(icon)) {\n            // Implementation for clicking the Remove icon\n        }\n    }\n\n    @When(\"the user confirms removal in the dialog\")\n    public void the_user_confirms_removal_in_the_dialog() {\n        // Implementation for confirming removal\n    }\n\n    @Then(\"the item is removed from the cart\")\n    public void the_item_is_removed_from_the_cart() {\n        // Implementation for verifying item removal\n    }\n\n    @Then(\"the cart total is recalculated immediately\")\n    public void the_cart_total_is_recalculated_immediately() {\n        // Implementation for verifying cart total recalculation\n    }\n\n    @Then(\"if the cart is empty, display {string} message\")\n    public void if_the_cart_is_empty_display_message(String expectedMessage) {\n        // Implementation for checking empty cart message\n        String actualMsg = \"\"; // Get the actual message from the UI\n        Assert.assertEquals(\"Expected empty cart message\", expectedMessage, actualMsg);\n    }\n\n    @Then(\"the subtotal, applicable taxes, estimated shipping, and grand total are displayed\")\n    public void the_subtotal_applicable_taxes_estimated_shipping_and_grand_total_are_displayed() {\n        // Implementation for verifying cart summary details\n    }\n}"
+        },
+        {
+          "step_id": "85a0a192-8653-47d6-80bd-a6e8b020cf81",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.CheckoutPage;\nimport pages.OrderConfirmationPage;\n\npublic class CheckoutSteps {\n\n    private final CheckoutPage checkoutPage;\n    private final OrderConfirmationPage orderConfirmationPage;\n\n    public CheckoutSteps(CheckoutPage checkoutPage, OrderConfirmationPage orderConfirmationPage) {\n        this.checkoutPage = checkoutPage;\n        this.orderConfirmationPage = orderConfirmationPage;\n    }\n\n    @Given(\"the user is in the checkout process\")\n    public void the_user_is_in_the_checkout_process() {\n        // Code to navigate to the checkout process\n    }\n\n    @When(\"the user enters credit/debit card details\")\n    public void the_user_enters_credit_debit_card_details() {\n        // Code to enter credit/debit card details\n        checkoutPage.completeCheckout();\n    }\n\n    @When(\"the user submits the payment\")\n    public void the_user_submits_the_payment() {\n        // Code to submit the payment\n        checkoutPage.completeCheckout();\n    }\n\n    @Then(\"the payment is processed\")\n    public void the_payment_is_processed() {\n        // Code to verify payment processing\n        Assert.assertEquals(\"Expected payment processing message\", \"Payment processed successfully.\", \"Actual payment message\");\n    }\n\n    @Then(\"card details are not stored on the platform's servers\")\n    public void card_details_are_not_stored_on_the_platform_s_servers() {\n        // Code to verify that card details are not stored\n        Assert.assertEquals(\"Expected card storage message\", \"Card details are not stored.\", \"Actual card storage message\");\n    }\n\n    @Given(\"the payment has been successfully processed\")\n    public void the_payment_has_been_successfully_processed() {\n        // Code to simulate successful payment processing\n    }\n\n    @When(\"the user is redirected to the order confirmation page\")\n    public void the_user_is_redirected_to_the_order_confirmation_page() {\n        // Code to redirect to the order confirmation page\n    }\n\n    @Then(\"the order confirmation page is displayed\")\n    public void the_order_confirmation_page_is_displayed() {\n        // Code to verify order confirmation page is displayed\n        Assert.assertEquals(\"Expected confirmation message\", \"Order Confirmation\", orderConfirmationPage.getConfirmationMessage());\n    }\n\n    @Then(\"a confirmation email is sent within {int} seconds\")\n    public void a_confirmation_email_is_sent_within_seconds(int seconds) {\n        // Code to verify that confirmation email is sent within specified time\n        Assert.assertEquals(\"Expected email sending message\", \"Confirmation email sent.\", \"Actual email sending message\");\n    }\n}"
+        },
+        {
+          "step_id": "564a138f-39c4-4125-94f4-6eee47a7b7b0",
+          "name": "StepDefinitions",
+          "filename": "StepDefinitions.java",
+          "content": "package stepdefinitions;\n\nimport io.cucumber.java.en.Given;\nimport io.cucumber.java.en.When;\nimport io.cucumber.java.en.Then;\nimport org.junit.Assert;\nimport pages.CoreFunctionalityPage;\nimport pages.CheckoutPage;\nimport pages.RegistrationPage;\nimport pages.AuthenticationPage;\n\npublic class CorefunctionalitiesSteps {\n\n    private final CoreFunctionalityPage coreFunctionalityPage;\n    private final CheckoutPage checkoutPage;\n    private final RegistrationPage registrationPage;\n    private final AuthenticationPage authenticationPage;\n\n    public CorefunctionalitiesSteps(CoreFunctionalityPage coreFunctionalityPage, \n                                     CheckoutPage checkoutPage, \n                                     RegistrationPage registrationPage, \n                                     AuthenticationPage authenticationPage) {\n        this.coreFunctionalityPage = coreFunctionalityPage;\n        this.checkoutPage = checkoutPage;\n        this.registrationPage = registrationPage;\n        this.authenticationPage = authenticationPage;\n    }\n\n    @Given(\"the user is in the checkout process\")\n    public void the_user_is_in_the_checkout_process() {\n        // Code to navigate to checkout process\n    }\n\n    @When(\"the user enters a valid shipping address\")\n    public void the_user_enters_a_valid_shipping_address() {\n        coreFunctionalityPage.enterShippingAddress(\"123 Main St, Anytown, USA\");\n    }\n\n    @When(\"the user selects a previously saved address\")\n    public void the_user_selects_a_previously_saved_address() {\n        coreFunctionalityPage.selectSavedAddress();\n    }\n\n    @Then(\"the shipping address is accepted and saved for the order\")\n    public void the_shipping_address_is_accepted_and_saved_for_the_order() {\n        String actualMessage = coreFunctionalityPage.getShippingAddressConfirmation();\n        Assert.assertEquals(\"Expected shipping address confirmation message\", \n                            \"Shipping address accepted.\", actualMessage);\n    }\n\n    @Given(\"the user has a registered account with email {string}\")\n    public void the_user_has_a_registered_account_with_email(String email) {\n        // Code to ensure user is registered with the provided email\n    }\n\n    @When(\"the user navigates to {string}\")\n    public void the_user_navigates_to(String url) {\n        // Code to navigate to the specified URL\n    }\n\n    @When(\"the user enters email {string}\")\n    public void the_user_enters_email(String email) {\n        authenticationPage.enterEmail(email);\n    }\n\n    @When(\"the user clicks {string}\")\n    public void the_user_clicks(String buttonLabel) {\n        authenticationPage.clickButton(buttonLabel);\n    }\n\n    @Then(\"the success message should be {string}\")\n    public void the_success_message_should_be(String expectedMessage) {\n        String actualMessage = authenticationPage.getToastMessage();\n        Assert.assertEquals(\"Expected success message\", expectedMessage, actualMessage);\n    }\n\n    @Then(\"the user can log in with the new password\")\n    public void the_user_can_log_in_with_the_new_password() {\n        // Code to attempt login with new password\n        boolean loginSuccessful = authenticationPage.loginUser(\"reset@example.com\", \"newPassword\");\n        Assert.assertTrue(\"Expected user to log in successfully with new password\", loginSuccessful);\n    }\n\n    @Then(\"the old password no longer works\")\n    public void the_old_password_no_longer_works() {\n        boolean loginSuccessful = authenticationPage.loginUser(\"reset@example.com\", \"oldPassword\");\n        Assert.assertFalse(\"Expected login to fail with old password\", loginSuccessful);\n    }\n}"
+        }
+      ],
+      "utilities": {
+        "pom": {
+          "utility_id": "3d458b36-1b8f-455d-ba17-23e8fb916417",
+          "name": "pom",
+          "filename": "pom.xml",
+          "zip_path": "pom.xml",
+          "content": "```xml\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>selenium-cucumber-framework</artifactId>\n    <version>1.0-SNAPSHOT</version>\n    <properties>\n        <maven.compiler.source>11</maven.compiler.source>\n        <maven.compiler.target>11</maven.compiler.target>\n        <surefire.version>2.22.2</surefire.version>\n    </properties>\n    <dependencies>\n        <dependency>\n            <groupId>org.seleniumhq.selenium</groupId>\n            <artifactId>selenium-java</artifactId>\n            <version>4.18.1</version>\n        </dependency>\n        <dependency>\n            <groupId>io.cucumber</groupId>\n            <artifactId>cucumber-java</artifactId>\n            <version>7.15.0</version>\n        </dependency>\n        <dependency>\n            <groupId>io.cucumber</groupId>\n            <artifactId>cucumber-junit</artifactId>\n            <version>7.15.0</version>\n        </dependency>\n        <dependency>\n            <groupId>junit</groupId>\n            <artifactId>junit</artifactId>\n            <version>4.13.2</version>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.github.bonigarcia</groupId>\n            <artifactId>webdrivermanager</artifactId>\n            <version>5.6.3</version>\n        </dependency>\n        <dependency>\n            <groupId>org.apache.logging.log4j</groupId>\n            <artifactId>log4j-core</artifactId>\n            <version>2.22.1</version>\n        </dependency>\n    </dependencies>\n    <build>\n        <plugins>\n            <plugin>\n                <groupId>org.apache.maven.plugins</groupId>\n                <artifactId>maven-surefire-plugin</artifactId>\n                <version>${surefire.version}</version>\n            </plugin>\n        </plugins>\n    </build>\n</project>\n```"
+        },
+        "config": {
+          "utility_id": "e9572362-edca-47d4-bef5-d91acaea7528",
+          "name": "config",
+          "filename": "config.properties",
+          "zip_path": "src/test/resources/config.properties",
+          "content": "```\nbase.url=http://example.com\nbrowser=chrome\nheadless=true\nimplicit.wait=10\nexplicit.wait=20\n```"
+        },
+        "cucumber": {
+          "utility_id": "8bf92e96-8b29-4ea6-a111-d08d42b3ee05",
+          "name": "cucumber",
+          "filename": "cucumber.properties",
+          "zip_path": "src/test/resources/cucumber.properties",
+          "content": "```\ncucumber.publish.quiet=true\ncucumber.ansi-colors.disabled=false\n```"
+        },
+        "DriverFactory": {
+          "utility_id": "df565b84-5b94-418d-b858-a9a5198f9583",
+          "name": "DriverFactory",
+          "filename": "DriverFactory.java",
+          "zip_path": "src/test/java/config/DriverFactory.java",
+          "content": "```java\npackage config;\n\nimport io.github.bonigarcia.wdm.WebDriverManager;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.firefox.FirefoxDriver;\nimport org.openqa.selenium.remote.DesiredCapabilities;\n\npublic class DriverFactory {\n    private static ThreadLocal<WebDriver> driver = new ThreadLocal<>();\n    private static String baseUrl = ConfigReader.getString(\"base.url\", \"http://localhost\");\n    \n    public static WebDriver getDriver() {\n        return driver.get();\n    }\n\n    public static void initDriver() {\n        String browser = ConfigReader.getString(\"browser\", \"chrome\");\n        boolean headless = ConfigReader.getBoolean(\"headless\", false);\n        \n        if (browser.equalsIgnoreCase(\"chrome\")) {\n            WebDriverManager.chromedriver().setup();\n            DesiredCapabilities capabilities = new DesiredCapabilities();\n            capabilities.setCapability(\"headless\", headless);\n            driver.set(new ChromeDriver(capabilities));\n        } else if (browser.equalsIgnoreCase(\"firefox\")) {\n            WebDriverManager.firefoxdriver().setup();\n            driver.set(new FirefoxDriver());\n        }\n        driver.get().manage().window().maximize();\n        driver.get(baseUrl);\n    }\n\n    public static void quitDriver() {\n        if (driver.get() != null) {\n            driver.get().quit();\n            driver.remove();\n        }\n    }\n}\n```"
+        },
+        "ConfigReader": {
+          "utility_id": "b62111ae-59e3-444a-bc35-2e5be056f6a0",
+          "name": "ConfigReader",
+          "filename": "ConfigReader.java",
+          "zip_path": "src/test/java/config/ConfigReader.java",
+          "content": "```java\npackage config;\n\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.util.Properties;\n\npublic class ConfigReader {\n    private static Properties properties = new Properties();\n\n    static {\n        try (InputStream input = ConfigReader.class.getClassLoader().getResourceAsStream(\"config.properties\")) {\n            if (input == null) {\n                throw new RuntimeException(\"Unable to find config.properties\");\n            }\n            properties.load(input);\n        } catch (IOException ex) {\n            throw new RuntimeException(\"Error loading properties file\", ex);\n        }\n    }\n\n    public static String getString(String key, String defaultValue) {\n        return properties.getProperty(key, defaultValue);\n    }\n\n    public static boolean getBoolean(String key, boolean defaultValue) {\n        String value = properties.getProperty(key);\n        return value != null ? Boolean.parseBoolean(value) : defaultValue;\n    }\n}\n```"
+        },
+        "BasePage": {
+          "utility_id": "c8ee5a68-7b71-4f4a-b930-a35a3e3a9e22",
+          "name": "BasePage",
+          "filename": "BasePage.java",
+          "zip_path": "src/test/java/pages/BasePage.java",
+          "content": "```java\npackage pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class BasePage {\n    protected WebDriver driver;\n    private WebDriverWait wait;\n\n    public BasePage(WebDriver driver) {\n        this.driver = driver;\n        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));\n    }\n\n    public void waitForVisible(By locator) {\n        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));\n    }\n\n    public void waitForClickable(By locator) {\n        wait.until(ExpectedConditions.elementToBeClickable(locator));\n    }\n\n    public String getText(WebElement element) {\n        return element.getText();\n    }\n\n    public boolean isPresent(By locator) {\n        return driver.findElements(locator).size() > 0;\n    }\n\n    public void navigateTo(String url) {\n        driver.get(url);\n    }\n\n    public String getPageTitle() {\n        return driver.getTitle();\n    }\n}\n```"
+        },
+        "Hooks": {
+          "utility_id": "3a0d78c3-f028-4602-b810-bfeeda609303",
+          "name": "Hooks",
+          "filename": "Hooks.java",
+          "zip_path": "src/test/java/hooks/Hooks.java",
+          "content": "```java\npackage hooks;\n\nimport config.DriverFactory;\nimport io.cucumber.java.After;\nimport io.cucumber.java.Before;\nimport utils.ScreenshotUtils;\n\npublic class Hooks {\n    @Before(order = 1)\n    public void setUp() {\n        DriverFactory.initDriver();\n    }\n\n    @After(order = 1)\n    public void tearDown(io.cucumber.java.Scenario scenario) {\n        if (scenario.isFailed()) {\n            ScreenshotUtils.takeScreenshot(scenario.getName());\n        }\n        DriverFactory.quitDriver();\n    }\n}\n```"
+        },
+        "TestRunner": {
+          "utility_id": "44d2eae4-d6ee-4e58-a6bc-4e161de4d01a",
+          "name": "TestRunner",
+          "filename": "TestRunner.java",
+          "zip_path": "src/test/java/runners/TestRunner.java",
+          "content": "```java\npackage runners;\n\nimport io.cucumber.junit.Cucumber;\nimport io.cucumber.junit.CucumberOptions;\nimport org.junit.runner.RunWith;\n\n@RunWith(Cucumber.class)\n@CucumberOptions(\n        features = \"src/test/resources/features\",\n        glue = \"stepdefinitions\",\n        plugin = {\"pretty\", \"html:target/cucumber-reports/\", \"json:target/cucumber.json\"},\n        tags = \"@smoke\",\n        monochrome = true\n)\npublic class TestRunner {\n}\n```"
+        },
+        "WaitUtils": {
+          "utility_id": "5ba2f7c1-2bdd-411c-8d23-d8c6f8ac48c0",
+          "name": "WaitUtils",
+          "filename": "WaitUtils.java",
+          "zip_path": "src/test/java/utils/WaitUtils.java",
+          "content": "```java\npackage utils;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class WaitUtils {\n    private static WebDriver driver;\n\n    public WaitUtils(WebDriver driver) {\n        WaitUtils.driver = driver;\n    }\n\n    public static void waitForTextPresent(By locator, String text) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.textToBePresentInElementLocated(locator, text));\n    }\n\n    public static void waitForUrlContains(String fragment) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.urlContains(fragment));\n    }\n\n    public static void waitForAttributeContains(By locator, String attribute, String value) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.attributeContains(locator, attribute, value));\n    }\n\n    public static void waitForInvisibility(By locator) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.invisibilityOfElementLocated(locator));\n    }\n}\n```"
+        },
+        "ScreenshotUtils": {
+          "utility_id": "7b3fa4d0-5fa1-470f-90df-fc4227ce1c78",
+          "name": "ScreenshotUtils",
+          "filename": "ScreenshotUtils.java",
+          "zip_path": "src/test/java/utils/ScreenshotUtils.java",
+          "content": "```java\npackage utils;\n\nimport org.openqa.selenium.OutputType;\nimport org.openqa.selenium.TakesScreenshot;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.chrome.ChromeDriver;\n\nimport java.io.File;\nimport java.io.IOException;\nimport java.nio.file.Files;\nimport java.nio.file.Path;\nimport java.nio.file.Paths;\nimport java.text.SimpleDateFormat;\nimport java.util.Date;\n\npublic class ScreenshotUtils {\n    private static WebDriver driver;\n\n    public ScreenshotUtils(WebDriver driver) {\n        ScreenshotUtils.driver = driver;\n    }\n\n    public static void takeScreenshot(String scenarioName) {\n        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);\n        String timestamp = new SimpleDateFormat(\"yyyyMMddHHmmss\").format(new Date());\n        Path destination = Paths.get(\"target/screenshots/\" + scenarioName + \"_\" + timestamp + \".png\");\n        try {\n            Files.createDirectories(destination.getParent());\n            Files.copy(screenshot.toPath(), destination);\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n}\n```"
+        }
+      },
+      "framework": {
+        "project_id": "4d601a6f-8548-49cd-8702-cfbe2391329d",
+        "selected_framework": "java",
+        "framework_details": {
+          "language": "Java",
+          "version": "21",
+          "build_tool": "Maven",
+          "test_framework": "TestNG",
+          "bdd_framework": "Cucumber",
+          "reporting": "Extent Reports",
+          "dependencies": [
+            "Selenium 4",
+            "Apache POI",
+            "Jackson"
+          ]
+        },
+        "status": "selected"
+      },
+      "quality_metrics": {
+        "overall_score": 75,
+        "gherkin_quality": 85,
+        "java_code_quality": 80,
+        "step_definition_coverage": 70,
+        "page_object_quality": 90,
+        "locator_quality": 95,
+        "framework_structure": 80,
+        "traceability": 100,
+        "assertion_quality": 60,
+        "maintainability": 75,
+        "automation_readiness": 70,
+        "requirement_coverage_pct": 800,
+        "duplicate_steps": [
+          "the user is logged in",
+          "the error message should be {string}",
+          "the user enters email {string}",
+          "the user navigates to {string}",
+          "the user is in the checkout process"
+        ],
+        "missing_components": [],
+        "improvement_suggestions": [
+          "Refactor duplicate step definitions to reduce redundancy.",
+          "Ensure all 'Then' steps have corresponding assertions.",
+          "Add scenario outlines for parameterized tests to improve coverage.",
+          "Implement better error handling in step definitions.",
+          "Consider using more descriptive names for step definitions."
+        ],
+        "critical_issues": [],
+        "summary": "The project is well-structured but requires improvements in step definitions and assertion coverage.",
+        "static_analysis": {
+          "gherkin": {
+            "total_feature_files": 6,
+            "total_scenarios": 18,
+            "scenario_outlines": 0,
+            "smoke_tagged": 11,
+            "regression_tagged": 6,
+            "req_traced_tags": 24,
+            "vague_then_steps": 0,
+            "has_background": true
+          },
+          "page_objects": {
+            "total_classes": 8,
+            "extends_base_page": 7,
+            "thread_sleep_usages": 0,
+            "brittle_absolute_xpath": 0,
+            "generic_div_xpath": 0,
+            "todo_comments": 0
+          },
+          "step_definitions": {
+            "total_classes": 6,
+            "total_step_patterns": 81,
+            "duplicate_steps": [
+              "the user is logged in",
+              "the error message should be {string}",
+              "the user enters email {string}",
+              "the user navigates to {string}",
+              "the user is in the checkout process"
+            ],
+            "assert_calls": 29,
+            "then_steps_without_assert": 10
+          },
+          "utilities": {
+            "generated": [
+              "pom",
+              "config",
+              "cucumber",
+              "DriverFactory",
+              "ConfigReader",
+              "BasePage",
+              "Hooks",
+              "TestRunner",
+              "WaitUtils",
+              "ScreenshotUtils"
+            ],
+            "missing_core": [],
+            "has_pom_xml": true
+          }
+        }
+      },
+      "traceability_map": {
+        "Here is the structured list of functional requirements, business rules, and features extracted from the provided document": {
+          "requirement": "",
+          "test_cases": [],
+          "feature_files": [],
+          "page_objects": []
+        },
+        "Based on the provided document, here is a structured list of functional requirements, business rules, and features": {
+          "requirement": "",
+          "test_cases": [],
+          "feature_files": [],
+          "page_objects": []
+        },
+        "Here is the structured list of functional requirements, business rules, and features extracted from the document": {
+          "requirement": "",
+          "test_cases": [],
+          "feature_files": [],
+          "page_objects": []
+        }
+      },
+      "requirements": [
+        {
+          "requirement_id": "Here is the structured list of functional requirements, business rules, and features extracted from the provided document",
+          "feature": "",
+          "business_rules": [
+            "Users must register with a valid email address and a password of at least 8 characters.",
+            "The system must send a confirmation email with a link that expires in 24 hours.",
+            "Registered users can log in with their email and password.",
+            "Three failed attempts must lock the account for 15 minutes.",
+            "Successful login redirects to the dashboard.",
+            "Users can request a password-reset link via email.",
+            "The link must expire after 24 hours and can only be used once.",
+            "Authenticated users can log out at any time.",
+            "The session must be invalidated server-side immediately.",
+            "Display products with thumbnail, name, price, and rating.",
+            "Paginate at 12 items per page.",
+            "Support sorting by price and popularity.",
+            "Full-text search across product name and description.",
+            "Results must appear within 2 seconds.",
+            "Show 'No results found' for zero matches.",
+            "Each product page shows description, specifications, stock level, customer reviews (with ratings), and related products.",
+            "Authenticated users can add any in-stock product to their cart.",
+            "Cart persists across browser sessions via server-side storage.",
+            "Users can change item quantity (1\u201399) or remove items.",
+            "Cart total must update in real time.",
+            "Display subtotal, applicable taxes, estimated shipping, and grand total.",
+            "Users must provide a valid shipping address.",
+            "Previously saved addresses can be selected from a dropdown.",
+            "Support credit/debit card via Stripe.",
+            "Card details must never be stored on the platform's servers.",
+            "After successful payment, show an order-confirmation page.",
+            "Send a confirmation email within 30 seconds.",
+            "Performance: Page load time < 3 seconds on a 4G connection.",
+            "Security: HTTPS only. OWASP Top-10 mitigations in place.",
+            "Availability: 99.9 % uptime SLA.",
+            "Accessibility: WCAG 2.1 AA compliant."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        },
+        {
+          "requirement_id": "Based on the provided document, here is a structured list of functional requirements, business rules, and features",
+          "feature": "",
+          "business_rules": [
+            "User should be able to register with a unique email and password.",
+            "**Business Rule 1**: Email must not already be registered.",
+            "**Business Rule 2**: Confirmation email must be sent within 60 seconds of successful registration.",
+            "User should receive an error message when attempting to register with an already registered email.",
+            "**Business Rule 1**: User remains on the registration page if the email is already in use.",
+            "**Business Rule 2**: No confirmation email is sent for duplicate registrations.",
+            "User should be able to log in with valid credentials.",
+            "**Business Rule 1**: User is redirected to the dashboard upon successful login.",
+            "**Business Rule 2**: A welcome message displaying the user's name should be shown.",
+            "User should receive an error message when logging in with an incorrect password.",
+            "**Business Rule 1**: User remains on the login page after a failed login attempt.",
+            "**Business Rule 2**: The password field should be cleared after a failed attempt.",
+            "User should be able to search for products and receive relevant results.",
+            "**Business Rule 1**: Search results should load within 2 seconds.",
+            "**Business Rule 2**: Results must contain at least one product matching the search term.",
+            "User should be able to add products to their shopping cart.",
+            "**Business Rule 1**: A success notification must be displayed upon adding an item.",
+            "**Business Rule 2**: The cart icon counter must update to reflect the new item count.",
+            "User should be able to remove items from their shopping cart.",
+            "**Business Rule 1**: The cart total must be recalculated immediately after an item is removed.",
+            "**Business Rule 2**: If the cart is empty, a message stating \"Your cart is empty.\" should be displayed.",
+            "User should be able to complete the checkout process successfully.",
+            "**Business Rule 1**: An order confirmation page must be displayed with an order ID.",
+            "**Business Rule 2**: A confirmation email must arrive within 30 seconds after placing the order.",
+            "User should be able to reset their password through a secure flow.",
+            "**Business Rule 1**: User must receive a success message upon resetting the password.",
+            "**Business Rule 2**: The old password must no longer work after a successful reset.",
+            "User account should be locked after three consecutive failed login attempts.",
+            "**Business Rule 1**: The account should remain locked for 15 minutes after the third failed attempt.",
+            "**Business Rule 2**: The lockout message should display even if the correct password is entered after the lockout."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        },
+        {
+          "requirement_id": "Here is the structured list of functional requirements, business rules, and features extracted from the document",
+          "feature": "",
+          "business_rules": [
+            "**REQ-001**: New user can register and receive a confirmation email.",
+            "Business Rule: Registration successful message is sent to the user.",
+            "Business Rule: Duplicate email returns a 409 error.",
+            "**REQ-002**: Valid credentials grant access to dashboard.",
+            "Business Rule: Invalid credentials show error, do not grant access.",
+            "Business Rule: 3 failed attempts lock the account for 15 minutes.",
+            "**REQ-003**: Password reset link is sent and works within 24 hours.",
+            "Business Rule: Old password rejected; new password accepted on next login.",
+            "**REQ-005**: Product list loads within 3 seconds.",
+            "Business Rule: Search returns relevant results within 2 seconds.",
+            "**REQ-006**: No-match search shows 'No results found'.",
+            "Business Rule: Search results must be relevant and displayed correctly.",
+            "**REQ-008**: In-stock product can be added to cart.",
+            "Business Rule: Item count must be greater than 0; subtotal is a positive number.",
+            "**REQ-009**: Item quantity can be updated; total recalculates.",
+            "Business Rule: Item can be removed; cart updates accordingly.",
+            "**REQ-011**: Valid shipping address is accepted.",
+            "Business Rule: Order confirmation page and email are generated.",
+            "**REQ-012**: Payment succeeds with test card 4242 4242 4242 4242.",
+            "Business Rule: Successful payment must be processed without errors.",
+            "**REQ-013**: Order confirmation page and email are generated.",
+            "Business Rule: Confirmation email sent within 30 seconds after order placement."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        }
+      ]
+    }
   }
 }

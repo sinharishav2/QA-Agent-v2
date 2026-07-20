@@ -284,22 +284,26 @@ async def download_generated_files(project_id: str):
 
         zip_buffer = io.BytesIO()
         with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            def _basename(path: str) -> str:
+                """Strip any directory prefix the LLM may have embedded in the filename."""
+                return path.replace('\\', '/').split('/')[-1]
+
             # Feature files (BDD .feature)
             for i, feature in enumerate(artifacts.get('feature_files', [])):
                 content = feature.get('content') or feature.get('feature_content') or json.dumps(feature, indent=2)
-                filename = feature.get('filename') or f'feature_{i+1}.feature'
+                filename = _basename(feature.get('filename') or f'feature_{i+1}.feature')
                 zip_file.writestr(f"src/test/resources/features/{filename}", content)
 
             # Page objects
             for i, page in enumerate(artifacts.get('page_objects', [])):
                 content = page.get('content') or page.get('class_content') or json.dumps(page, indent=2)
-                filename = page.get('filename') or f'Page_{i+1}.java'
+                filename = _basename(page.get('filename') or f'Page_{i+1}.java')
                 zip_file.writestr(f"src/test/java/pages/{filename}", content)
 
             # Step definitions
             for i, step in enumerate(artifacts.get('step_definitions', [])):
                 content = step.get('content') or step.get('step_content') or json.dumps(step, indent=2)
-                filename = step.get('filename') or f'StepDefs_{i+1}.java'
+                filename = _basename(step.get('filename') or f'StepDefs_{i+1}.java')
                 zip_file.writestr(f"src/test/java/stepdefinitions/{filename}", content)
 
             # Test cases as JSON
@@ -315,7 +319,7 @@ async def download_generated_files(project_id: str):
                         filename = util_data.get('filename', f'{util_name}.java')
                         zip_path = util_data.get('zip_path')
                         if zip_path:
-                            dest = zip_path
+                            dest = zip_path.replace('\\', '/')
                         else:
                             ext = filename.rsplit('.', 1)[-1] if '.' in filename else 'java'
                             if ext == 'xml' and filename == 'pom.xml':

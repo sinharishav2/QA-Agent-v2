@@ -94,17 +94,19 @@ Generate BasePage.java first, then all application page classes."""
 
         if response:
             self.logger.info(f"LLM returned {len(response)} chars for page objects")
-            return self._parse_java_files(response)
+            pages = self._parse_java_files(response)
+            return self._ensure_base_page(pages)
         else:
             self.logger.warning("LLM returned no response for page objects")
-            return []
+            return [self._default_base_page()]
 
     def _parse_java_files(self, response: str) -> List[Dict[str, Any]]:
         files = []
         parts = re.split(r'=== FILE: (.+?) ===', response)
         i = 1
         while i < len(parts) - 1:
-            filename = parts[i].strip()
+            raw_name = parts[i].strip()
+            filename = raw_name.replace('\\', '/').split('/')[-1]  # basename only
             content = parts[i + 1].strip()
             if content:
                 class_name = filename.replace('.java', '')
@@ -127,3 +129,95 @@ Generate BasePage.java first, then all application page classes."""
             })
 
         return files
+
+    def _ensure_base_page(self, pages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Guarantee BasePage.java is always present at the front of the list."""
+        has_base = any(p.get('filename', '').lower() == 'basepage.java' for p in pages)
+        if not has_base:
+            self.logger.info("BasePage.java not in LLM output — injecting default")
+            pages.insert(0, self._default_base_page())
+        return pages
+
+    @staticmethod
+    def _default_base_page() -> Dict[str, Any]:
+        content = '''package pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
+
+/**
+ * Base Page class providing common Selenium helper methods.
+ * All Page Object classes must extend this class.
+ */
+public class BasePage {
+
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+
+    public BasePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        PageFactory.initElements(driver, this);
+    }
+
+    /** Wait until element is visible, then return it. */
+    protected WebElement waitForElementVisible(By locator) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+    }
+
+    /** Wait until element is clickable, then click it. */
+    protected void waitForElementClickable(By locator) {
+        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+    }
+
+    /** Clear field and type text, with explicit wait. */
+    protected void type(By locator, String text) {
+        WebElement el = waitForElementVisible(locator);
+        el.clear();
+        el.sendKeys(text);
+    }
+
+    /** Get trimmed visible text from an element. */
+    protected String getText(By locator) {
+        return waitForElementVisible(locator).getText().trim();
+    }
+
+    /** Get trimmed text from a WebElement (e.g. @FindBy field). */
+    protected String getText(WebElement element) {
+        return element.getText().trim();
+    }
+
+    /** Return true if element is present in DOM without waiting. */
+    protected boolean isPresent(By locator) {
+        try {
+            driver.findElement(locator);
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /** Navigate browser to a URL. */
+    public void navigateTo(String url) {
+        driver.get(url);
+    }
+
+    /** Return current page title. */
+    public String getPageTitle() {
+        return driver.getTitle();
+    }
+}
+'''
+        return {
+            "page_id": str(uuid.uuid4()),
+            "class_name": "BasePage",
+            "page_name": "BasePage",
+            "filename": "BasePage.java",
+            "content": content,
+        }

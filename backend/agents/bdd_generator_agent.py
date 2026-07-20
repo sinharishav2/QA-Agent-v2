@@ -54,13 +54,41 @@ class BDDGeneratorAgent(BaseAgent):
             self.logger.error(f"BDD generation failed: {str(e)}", exc_info=True)
             return {"feature_files": [], "total_features": 0, "status": "failed", "error": str(e)}
 
+    # ------------------------------------------------------------------
+    # Module derivation
+    # ------------------------------------------------------------------
+
+    _MODULE_KEYWORDS = [
+        (['login', 'sign in', 'logout', 'authentication', 'auth'], 'Authentication'),
+        (['register', 'sign up', 'create account', 'registration'], 'Registration'),
+        (['reset password', 'forgot password'], 'PasswordReset'),
+        (['cart', 'basket', 'add to cart', 'shopping cart', 'remove from cart'], 'ShoppingCart'),
+        (['checkout', 'payment', 'order', 'purchase', 'billing'], 'Checkout'),
+        (['product', 'catalog', 'browse', 'search', 'listing', 'category'], 'ProductCatalog'),
+        (['profile', 'account settings', 'my account'], 'UserProfile'),
+    ]
+
+    def _derive_module(self, scenario: str) -> str:
+        lower = scenario.lower()
+        for keywords, module in self._MODULE_KEYWORDS:
+            if any(k in lower for k in keywords):
+                return module
+        return 'CoreFunctionality'
+
     def _generate_feature_files(self, test_cases: List[Dict[str, Any]], document_content: str) -> List[Dict[str, Any]]:
+        # Derive module for every test case that doesn't have one
+        for tc in test_cases:
+            if not tc.get('module') or tc['module'].strip().lower() in ('general', 'core', ''):
+                tc['module'] = self._derive_module(
+                    tc.get('scenario', tc.get('title', ''))
+                )
+
         test_cases_text = self._format_test_cases(test_cases)
-        modules = sorted(set(tc.get('module', 'General') for tc in test_cases if tc.get('module')))
+        modules = sorted(set(tc.get('module', 'CoreFunctionality') for tc in test_cases))
 
         user_prompt = f"""Generate one Cucumber .feature file per module. Group test cases by their Module field.
 
-Modules identified: {', '.join(modules) if modules else 'Authentication, Core'}
+Modules identified: {', '.join(modules) if modules else 'Authentication, Registration, ProductCatalog, ShoppingCart, Checkout'}
 
 CONTEXT (Requirements + Expected Outputs):
 {document_content[:4000]}
@@ -76,6 +104,9 @@ INSTRUCTIONS:
 - Extract exact error messages and HTTP codes from the Context section for Then steps
 - Add Background: block if 2+ scenarios in a Feature share the same Given step
 
+IMPORTANT: NEVER use 'General.feature' or 'Core.feature' as a filename.
+Always use the specific functional module name (e.g. Authentication.feature, ShoppingCart.feature).
+
 Return each file using this EXACT delimiter (no deviation):
 === FILE: ModuleName.feature ===
 [complete feature file content]
@@ -87,7 +118,8 @@ Generate all feature files now."""
 
         if response:
             self.logger.info(f"LLM returned {len(response)} chars for feature files")
-            return self._parse_files(response, '.feature')
+            files = self._parse_files(response, '.feature')
+            return self._split_general_features(files)
         else:
             self.logger.warning("LLM returned no response for feature files")
             return []
@@ -135,3 +167,41 @@ Generate all feature files now."""
             })
 
         return files
+
+    def _split_general_features(self, files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """If a file is named General/Core, split it into module-specific files by Feature: blocks."""
+        result = []
+        for f in files:
+            fname = f.get('filename', '')
+            if re.match(r'(?i)(general|core|corefunctionality)', fname.replace('.feature', '')):
+                result.extend(self._split_by_feature_blocks(f.get('content', '')))
+            else:
+                result.append(f)
+        return result if result else files
+
+    def _split_by_feature_blocks(self, content: str) -> List[Dict[str, Any]]:
+        """Split a multi-Feature Gherkin string into one file per Feature: block."""
+        blocks = re.split(r'(?=^Feature:)', content, flags=re.MULTILINE)
+        files = []
+        for block in blocks:
+            block = block.strip()
+            if not block:
+                continue
+            m = re.match(r'Feature:\s*(.+)', block)
+            if not m:
+                continue
+            module_name = re.sub(r'[^\w]', '', m.group(1).strip().title().replace(' ', ''))
+            if not module_name:
+                module_name = 'Feature'
+            files.append({
+                "feature_id": str(uuid.uuid4()),
+                "feature_name": module_name,
+                "filename": f"{module_name}.feature",
+                "content": block,
+            })
+        return files or [{
+            "feature_id": str(uuid.uuid4()),
+            "feature_name": "CoreFunctionality",
+            "filename": "CoreFunctionality.feature",
+            "content": content,
+        }]

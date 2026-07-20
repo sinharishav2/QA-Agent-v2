@@ -55,44 +55,69 @@ class StepDefinitionAgent(BaseAgent):
             return {"step_definitions": [], "total_steps": 0, "status": "failed", "error": str(e)}
 
     def _generate_step_definitions(self, feature_files: List[Dict[str, Any]], page_objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        feature_content = "\n\n".join([
-            f"=== {f.get('filename', f.get('feature_name',''))} ===\n{f.get('content','')}"
-            for f in feature_files
-        ])
+        """Generate one step definition class per feature file to ensure full step coverage."""
         page_api = self._extract_page_api(page_objects)
+        all_step_defs: List[Dict[str, Any]] = []
 
-        user_prompt = f"""Generate Java Cucumber Step Definition classes for the feature files below.
+        for feature in feature_files:
+            result = self._generate_for_single_feature(feature, page_api)
+            all_step_defs.extend(result)
 
-FEATURE FILES (map every step to a @Given/@When/@Then method):
-{feature_content[:4500]}
+        return all_step_defs
 
-AVAILABLE PAGE OBJECT API (use ONLY these methods — do not invent new ones):
+    def _generate_for_single_feature(self, feature: Dict[str, Any], page_api: str) -> List[Dict[str, Any]]:
+        """Generate a step definition class for one feature file."""
+        raw_name = feature.get('filename', feature.get('feature_name', 'Feature'))
+        feature_name = raw_name.split('/')[-1].split('\\')[-1]  # basename only
+        content = feature.get('content', '').strip()
+        if not content:
+            return []
+
+        base = re.sub(r'\.feature$', '', feature_name, flags=re.IGNORECASE)
+        class_name = re.sub(r'[^\w]', '', base.replace(' ', '_').title().replace('_', '')) + 'Steps'
+
+        # Extract unique step texts for explicit coverage instruction
+        step_texts = re.findall(r'^\s*(?:Given|When|Then|And|But)\s+(.+)', content, re.MULTILINE)
+        steps_list = '\n'.join(f'  - {s.strip()}' for s in dict.fromkeys(step_texts))
+
+        user_prompt = f"""Generate ONE Java Cucumber Step Definition class: {class_name}.java
+
+FEATURE FILE TO IMPLEMENT IN FULL:
+{content}
+
+STEPS THAT MUST EACH HAVE AN @Given/@When/@Then METHOD ({len(step_texts)} steps):
+{steps_list}
+
+PAGE OBJECT API (use only these methods):
 {page_api}
 
-INSTRUCTIONS:
-- Create one Step Definition class per Feature file
-  (AuthenticationSteps.java, ShoppingCartSteps.java, etc.)
-- The class must hold page object instances and a WebDriver field
-- Initialise WebDriver and all page objects in the constructor
-- Every Gherkin step must have exactly one corresponding @Given/@When/@Then method
-- Match the step annotation text EXACTLY to the Gherkin step (excluding leading keyword)
-- Use parameterised {string}/{int} where the Gherkin step uses double-quoted values or numbers
-- Then-step assertions must use Assert.assertEquals(\"message\", expected, actual)
-- Use the exact assertion values already embedded in the Gherkin Then steps
+REQUIREMENTS:
+- Class: {class_name}, package stepdefinitions;
+- Implement EVERY step listed above — no step may be skipped
+- Deduplicate steps shared across scenarios (one method per unique text)
+- Parameterise {'{string}'}/{'{int}'} for quoted/numeric values in step text
+- Assert.assertEquals(\"message\", expected, actual) in all Then-step assertions
+- WebDriver + page objects initialised in constructor (no static state)
 
-Return each file using this EXACT delimiter:
-=== FILE: ClassName.java ===
+Return ONLY:
+=== FILE: {class_name}.java ===
 [complete compilable Java class]"""
 
-        self.logger.info("Calling LLM to generate step definitions...")
-        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
+        self.logger.info(f"Generating step definitions for {feature_name} ({len(step_texts)} steps)...")
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
 
         if response:
-            self.logger.info(f"LLM returned {len(response)} chars for step definitions")
-            return self._parse_java_files(response)
-        else:
-            self.logger.warning("LLM returned no response for step definitions")
-            return []
+            parsed = self._parse_java_files(response)
+            if not parsed:
+                parsed = [{
+                    "step_id": str(uuid.uuid4()),
+                    "name": class_name,
+                    "filename": f"{class_name}.java",
+                    "content": response.strip()
+                }]
+            return parsed
+        self.logger.warning(f"No LLM response for {feature_name} step definitions")
+        return []
 
     def _extract_page_api(self, page_objects: List[Dict[str, Any]]) -> str:
         """Extract public method signatures from generated page object classes."""
