@@ -1,19 +1,26 @@
 from fastapi import APIRouter, UploadFile, File, HTTPException, Form
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Optional
+from pydantic import BaseModel
 import uuid
 import os
 import json
+import zipfile
+import io
 from datetime import datetime
 from loguru import logger
+from fastapi.responses import StreamingResponse
 
 from config import settings
 from agents.document_ingestion_agent import DocumentIngestionAgent
-from orchestrator.orchestrator_agent import OrchestratorAgent
 
 router = APIRouter(prefix="/api", tags=["automation"])
 
 document_ingestion_agent = DocumentIngestionAgent()
-orchestrator = OrchestratorAgent()
+orchestrator = None
+
+def set_orchestrator(orch):
+    global orchestrator
+    orchestrator = orch
 
 # In-memory storage for demo mode
 projects_store: Dict[str, Any] = {}
@@ -94,6 +101,24 @@ async def get_project(project_id: str):
         raise
     except Exception as e:
         logger.error(f"Error fetching project: {str(e)}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.delete("/projects/{project_id}")
+async def delete_project(project_id: str):
+    try:
+        if project_id not in projects_store:
+            raise HTTPException(status_code=404, detail="Project not found")
+        del projects_store[project_id]
+        if project_id in documents_store:
+            del documents_store[project_id]
+        save_storage()
+        logger.info(f"Project deleted: {project_id}")
+        return {"message": "Project deleted successfully", "project_id": project_id}
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error deleting project: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -199,6 +224,14 @@ async def generate_automation(project_id: str):
         projects_store[project_id]["status"] = "automation_generated"
         projects_store[project_id]["automation_framework"] = result.get('framework', {}).get('selected_framework', 'python')
         projects_store[project_id]["updated_at"] = datetime.utcnow().isoformat()
+        projects_store[project_id]["generated_artifacts"] = {
+            "test_cases": result.get('test_cases', []),
+            "feature_files": result.get('feature_files', []),
+            "page_objects": result.get('page_objects', []),
+            "step_definitions": result.get('step_definitions', []),
+            "utilities": result.get('utilities', {}),
+            "framework": result.get('framework', {})
+        }
         save_storage()
 
         logger.info(f"Automation generated for project: {project_id}")
@@ -215,6 +248,72 @@ async def generate_automation(project_id: str):
         raise
     except Exception as e:
         logger.error(f"Error generating automation: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@router.get("/projects/{project_id}/download")
+async def download_generated_files(project_id: str):
+    try:
+        if project_id not in projects_store:
+            raise HTTPException(status_code=404, detail="Project not found")
+
+        artifacts = projects_store[project_id].get("generated_artifacts")
+        if not artifacts:
+            raise HTTPException(status_code=404, detail="No generated files found. Please generate first.")
+
+        zip_buffer = io.BytesIO()
+        with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zip_file:
+            # Feature files (BDD .feature)
+            for i, feature in enumerate(artifacts.get('feature_files', [])):
+                content = feature.get('content') or feature.get('feature_content') or json.dumps(feature, indent=2)
+                filename = feature.get('filename') or f'feature_{i+1}.feature'
+                zip_file.writestr(f"src/test/resources/features/{filename}", content)
+
+            # Page objects
+            for i, page in enumerate(artifacts.get('page_objects', [])):
+                content = page.get('content') or page.get('class_content') or json.dumps(page, indent=2)
+                filename = page.get('filename') or f'Page_{i+1}.java'
+                zip_file.writestr(f"src/test/java/pages/{filename}", content)
+
+            # Step definitions
+            for i, step in enumerate(artifacts.get('step_definitions', [])):
+                content = step.get('content') or step.get('step_content') or json.dumps(step, indent=2)
+                filename = step.get('filename') or f'StepDefs_{i+1}.java'
+                zip_file.writestr(f"src/test/java/stepdefinitions/{filename}", content)
+
+            # Test cases as JSON
+            test_cases = artifacts.get('test_cases', [])
+            if test_cases:
+                zip_file.writestr("test_cases.json", json.dumps(test_cases, indent=2))
+
+            # Framework utility files (DriverFactory, ConfigReader, Hooks, etc.)
+            utilities = artifacts.get('utilities', {})
+            if isinstance(utilities, dict):
+                for util_name, util_data in utilities.items():
+                    if isinstance(util_data, dict) and util_data.get('content'):
+                        filename = util_data.get('filename', f'{util_name}.java')
+                        zip_file.writestr(f"src/test/java/utils/{filename}", util_data['content'])
+
+            # Summary
+            summary = {
+                "project_id": project_id,
+                "framework": artifacts.get('framework', {}),
+                "total_test_cases": len(test_cases),
+                "total_features": len(artifacts.get('feature_files', [])),
+                "total_pages": len(artifacts.get('page_objects', []))
+            }
+            zip_file.writestr("summary.json", json.dumps(summary, indent=2))
+
+        zip_buffer.seek(0)
+        return StreamingResponse(
+            zip_buffer,
+            media_type="application/zip",
+            headers={"Content-Disposition": f"attachment; filename=qa_automation_{project_id[:8]}.zip"}
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Error downloading files: {str(e)}", exc_info=True)
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -245,3 +344,89 @@ async def get_generation_status(project_id: str):
 @router.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow().isoformat()}
+
+
+class ChatRequest(BaseModel):
+    message: str
+    project_id: Optional[str] = None
+
+
+@router.post("/chat")
+async def chat_endpoint(request: ChatRequest):
+    from utils.openai_client import openai_client
+
+    system_prompt = """You are an intelligent assistant embedded inside the QA Automation Platform.
+
+Your purpose is to help users understand and use this platform, which automatically generates
+production-ready Java Selenium + Cucumber BDD automation test code from uploaded documents.
+
+== PLATFORM OVERVIEW ==
+This platform takes user-provided specification documents and uses AI to generate a complete,
+runnable Java Selenium + Cucumber test automation framework.
+
+== SUPPORTED INPUT DOCUMENTS (all 3 are required to generate) ==
+1. Functional Specification  ->  accepted formats: .txt, .docx, .pdf
+   Describes what the application under test does (pages, features, user flows).
+2. Test Cases  ->  accepted formats: .txt, .docx, .xlsx, .csv
+   Lists test scenarios with steps and expected results.
+3. Expected Output  ->  accepted formats: .txt, .docx, .pdf
+   Describes expected behavior and outcomes used to generate assertions.
+
+== GENERATED ARTIFACTS ==
+- Cucumber .feature files (Gherkin BDD: Feature / Scenario / Given-When-Then)
+- Java Page Object classes  (Selenium PageFactory + WebDriverWait)
+- Step Definition Java classes  (@Given / @When / @Then annotations)
+- Framework utilities: DriverFactory, ConfigReader, Hooks, TestRunner
+- Full Maven project layout (pom.xml compatible)
+
+== OUTPUT FOLDER STRUCTURE ==
+src/test/java/pages/            -> Page Object classes (.java)
+src/test/java/stepdefinitions/  -> Step Definition classes (.java)
+src/test/java/utils/            -> DriverFactory, ConfigReader, Hooks (.java)
+src/test/java/runners/          -> TestRunner (.java)
+src/test/resources/features/    -> Cucumber .feature files
+
+== TECH STACK ==
+- Java 11+, Maven 3.6+
+- Selenium WebDriver 4.x
+- Cucumber 7.x (BDD)
+- JUnit 5 for assertions
+- WebDriverWait (no Thread.sleep)
+- PageFactory pattern
+- CSS selectors preferred; XPath only when necessary
+- Chrome / ChromeDriver by default (configurable)
+
+== HOW TO USE THE PLATFORM ==
+1. Click "New Conversation" in the left sidebar to create a project.
+2. In the right panel, upload all 3 required documents.
+3. Click "Generate Code" — generation takes 30-60 seconds.
+4. Click "Download All Files (ZIP)" to get the generated framework.
+5. Extract the ZIP, then run:  mvn clean test
+
+== RUNNING THE GENERATED TESTS ==
+Prerequisites: Java JDK 11+, Maven 3.6+, Chrome + ChromeDriver on PATH
+Run all tests:   mvn clean test
+Run by tag:      mvn test -Dcucumber.filter.tags="@smoke"
+Reports:         target/cucumber-reports/
+
+== LIMITATIONS ==
+- All 3 documents must be uploaded before clicking Generate.
+- Tests are not executed inside the platform; you run them locally.
+- Generated code targets Chrome by default.
+
+Answer questions clearly and specifically based on this platform's actual capabilities.
+If asked something unrelated to QA automation or this platform, politely redirect the user."""
+
+    try:
+        response = openai_client.generate_with_system_prompt(
+            system_prompt, request.message, temperature=0.7, max_tokens=600
+        )
+        if not response:
+            response = (
+                "I'm having trouble reaching the AI right now. "
+                "Please make sure the backend is running and try again."
+            )
+        return {"response": response}
+    except Exception as e:
+        logger.error(f"Chat endpoint error: {str(e)}")
+        return {"response": "Sorry, an error occurred processing your message. Please try again."}

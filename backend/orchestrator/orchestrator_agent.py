@@ -28,14 +28,16 @@ class OrchestratorAgent:
             documents = input_data.get('documents', [])
 
             parsed_documents = self._execute_document_parsing(workflow_id, documents)
+            # Combine all document content for LLM context
+            document_content = self._extract_combined_content(parsed_documents)
             requirements = self._execute_requirement_extraction(workflow_id, parsed_documents)
             test_cases = self._execute_test_case_extraction(workflow_id, parsed_documents)
             test_designs = self._execute_test_design(workflow_id, test_cases)
             test_data = self._execute_test_data_generation(workflow_id, test_cases)
             framework = self._execute_framework_selection(workflow_id, project_id)
-            feature_files = self._execute_bdd_generation(workflow_id, test_cases)
-            page_objects = self._execute_page_object_generation(workflow_id, test_cases)
-            step_definitions = self._execute_step_definition_generation(workflow_id, feature_files)
+            feature_files = self._execute_bdd_generation(workflow_id, test_cases, document_content)
+            page_objects = self._execute_page_object_generation(workflow_id, test_cases, document_content)
+            step_definitions = self._execute_step_definition_generation(workflow_id, feature_files, page_objects)
             locators = self._execute_locator_intelligence(workflow_id, page_objects)
             utilities = self._execute_utility_generation(workflow_id, framework)
 
@@ -71,19 +73,32 @@ class OrchestratorAgent:
 
     def _execute_document_parsing(self, workflow_id: str, documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing document parsing for workflow {workflow_id}")
+        print(f"Document parsing: received {len(documents)} documents")
         parsed_docs = []
         
         for doc in documents:
+            agent = self.agent_registry.get("DocumentParserAgent")
+            print(f"DocumentParserAgent from registry: {type(agent)}")
+            if not agent:
+                print("ERROR: DocumentParserAgent not found in registry!")
+                continue
             try:
-                agent = self.agent_registry.get("DocumentParserAgent")
-                if agent:
-                    result = agent.execute(doc)
-                    parsed_docs.append(result)
-                    self._log_step(workflow_id, "DocumentParsing", "success", result)
+                print(f"Calling DocumentParserAgent.execute for doc: {doc.get('document_id')}, file: {doc.get('file_path')}")
+                result = agent.execute(doc)
+                print(f"DocumentParserAgent returned status: {result.get('status')}, error: {result.get('error', 'none')}")
+                parsed_docs.append(result)
+                self._log_step(workflow_id, "DocumentParsing", result.get('status', 'success'), result)
             except Exception as e:
-                self.logger.error(f"Document parsing failed: {str(e)}")
-                self._log_step(workflow_id, "DocumentParsing", "failed", {"error": str(e)})
+                print(f"EXCEPTION in DocumentParserAgent.execute: {str(e)}")
+                self.logger.error(f"Document parsing exception for {doc.get('document_id')}: {str(e)}", exc_info=True)
+                parsed_docs.append({
+                    "document_id": doc.get("document_id"),
+                    "document_type": doc.get("document_type"),
+                    "parsed_content": {"paragraphs": [], "lines": [], "content": "", "tables": [], "headings": []},
+                    "status": "parse_failed"
+                })
 
+        self.logger.info(f"Document parsing complete: {len(parsed_docs)} documents parsed")
         return parsed_docs
 
     def _execute_requirement_extraction(self, workflow_id: str, parsed_documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
@@ -125,7 +140,7 @@ class OrchestratorAgent:
                     test_cases.extend(extracted)
                     self._log_step(workflow_id, "TestCaseExtraction", "success", result)
             except Exception as e:
-                self.logger.error(f"Test case extraction failed: {str(e)}")
+                self.logger.error(f"Test case extraction failed: {str(e)}", exc_info=True)
                 self._log_step(workflow_id, "TestCaseExtraction", "failed", {"error": str(e)})
 
         self.logger.info(f"Total test cases after extraction: {len(test_cases)}")
@@ -157,12 +172,25 @@ class OrchestratorAgent:
             self._log_step(workflow_id, "TestDataGeneration", "failed", {"error": str(e)})
         return {}
 
+    def _extract_combined_content(self, parsed_documents: List[Dict[str, Any]]) -> str:
+        parts = []
+        for doc in parsed_documents:
+            content = doc.get('parsed_content', {})
+            text = content.get('content', '')
+            if not text:
+                paragraphs = content.get('paragraphs', [])
+                lines = content.get('lines', [])
+                text = '\n'.join(paragraphs or lines)
+            if text:
+                parts.append(f"[{doc.get('document_type','document')}]\n{text}")
+        return '\n\n'.join(parts)
+
     def _execute_framework_selection(self, workflow_id: str, project_id: str) -> Dict[str, Any]:
         self.logger.info(f"Executing framework selection for workflow {workflow_id}")
         try:
             agent = self.agent_registry.get("AutomationFrameworkAgent")
             if agent:
-                result = agent.execute({"project_id": project_id, "preferred_framework": "python"})
+                result = agent.execute({"project_id": project_id, "preferred_framework": "java"})
                 self._log_step(workflow_id, "FrameworkSelection", "success", result)
                 return result
         except Exception as e:
@@ -170,12 +198,12 @@ class OrchestratorAgent:
             self._log_step(workflow_id, "FrameworkSelection", "failed", {"error": str(e)})
         return {}
 
-    def _execute_bdd_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _execute_bdd_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]], document_content: str = '') -> List[Dict[str, Any]]:
         self.logger.info(f"Executing BDD generation for workflow {workflow_id}")
         try:
             agent = self.agent_registry.get("BDDGeneratorAgent")
             if agent:
-                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id})
+                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id, "document_content": document_content})
                 self._log_step(workflow_id, "BDDGeneration", "success", result)
                 return result.get('feature_files', [])
         except Exception as e:
@@ -183,12 +211,12 @@ class OrchestratorAgent:
             self._log_step(workflow_id, "BDDGeneration", "failed", {"error": str(e)})
         return []
 
-    def _execute_page_object_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _execute_page_object_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]], document_content: str = '') -> List[Dict[str, Any]]:
         self.logger.info(f"Executing page object generation for workflow {workflow_id}")
         try:
             agent = self.agent_registry.get("PageObjectAgent")
             if agent:
-                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id})
+                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id, "document_content": document_content})
                 self._log_step(workflow_id, "PageObjectGeneration", "success", result)
                 return result.get('page_objects', [])
         except Exception as e:
@@ -196,12 +224,12 @@ class OrchestratorAgent:
             self._log_step(workflow_id, "PageObjectGeneration", "failed", {"error": str(e)})
         return []
 
-    def _execute_step_definition_generation(self, workflow_id: str, feature_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+    def _execute_step_definition_generation(self, workflow_id: str, feature_files: List[Dict[str, Any]], page_objects: List[Dict[str, Any]] = []) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing step definition generation for workflow {workflow_id}")
         try:
             agent = self.agent_registry.get("StepDefinitionAgent")
             if agent:
-                result = agent.execute({"feature_files": feature_files, "project_id": workflow_id})
+                result = agent.execute({"feature_files": feature_files, "project_id": workflow_id, "page_objects": page_objects})
                 self._log_step(workflow_id, "StepDefinitionGeneration", "success", result)
                 return result.get('step_definitions', [])
         except Exception as e:

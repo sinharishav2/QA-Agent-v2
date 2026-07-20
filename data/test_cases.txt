@@ -1,0 +1,435 @@
+================================================================================
+                    E-COMMERCE PLATFORM - TEST CASES
+================================================================================
+
+Project: Online Shopping Application
+Test Suite Version: 1.0
+Date: July 2024
+
+================================================================================
+MODULE 1: USER AUTHENTICATION
+================================================================================
+
+TEST CASE: TC-001
+Title: Valid User Registration
+Priority: High
+Module: Authentication
+
+Preconditions:
+- User is on the registration page
+- No account exists with the email being used
+
+Steps:
+1. Navigate to registration page
+2. Enter email: testuser@example.com
+3. Enter password: TestPass123
+4. Enter confirm password: TestPass123
+5. Click "Register" button
+6. Verify confirmation email is sent
+
+Expected Results:
+- Registration should be successful
+- User should see success message
+- Confirmation email should be received
+- User should be able to login after confirming email
+
+---
+
+TEST CASE: TC-002
+Title: Invalid Email Format Registration
+Priority: High
+Module: Authentication
+
+Preconditions:
+- User is on the registration page
+
+Steps:
+1. Navigate to registration page
+2. Enter email: invalidemail
+3. Enter password: TestPass123
+4. Enter confirm password: TestPass123
+5. Click "Register" button
+
+Expected Results:
+- Registration should fail
+- Error message: "Invalid email format"
+- User should remain on registration page
+
+---
+
+TEST CASE: TC-003
+Title: Password Too Short
+Priority: High
+Module: Authentication
+
+Preconditions:
+- User is on the registration page
+
+Steps:
+1. Navigate to registration page
+2. Enter email: testuser@example.com
+3. Enter password: Test123
+4. Enter confirm password: Test123
+5. Click "Register" button
+
+Expected Results:
+- Registration should fail
+- Error message: "Password must be at least 8 characters"
+- User should remain on registration page
+
+---
+
+TEST CASE: TC-004
+Title: Valid User Login
+Priority: High
+Module: Authentication
+
+Preconditions:
+- User account exists with email: testuser@example.com
+- Password: TestPass123
+- Email is confirmed
+
+Steps:
+1. Navigate to login page
+2. Enter email: testuser@example.com
+3. Enter password: TestPass123
+4. Click "Login" button
+
+Expected Results:
+- Login should be successful
+- User should be redirected to dashboard
+- Welcome message should display
+- User name should be visible in header
+
+---
+
+TEST CASE: TC-005
+Title: Invalid Password Login
+Priority: High
+Module: Authentication
+
+Preconditions:
+- User account exists with email: testuser@example.com
+- Password: TestPass123
+
+Steps:
+1. Navigate to login page
+2. Enter email: testuser@example.com
+3. Enter password: WrongPassword
+4. Click "Login" button
+
+Expected Results:
+- Login should fail
+- Error message: "Invalid email or password"
+- User should remain on login page
+
+---
+
+================================================================================
+MODULE 2: PRODUCT BROWSING
+================================================================================
+
+TEST CASE: TC-006
+Title: View Product Listing
+Priority: High
+Module: Product Browsing
+
+Preconditions:
+- User is logged in
+- Products exist in the database
+
+Steps:
+1. Navigate to products page
+2. Verify product list is displayed
+3. Verify each product shows: image, name, price, rating
+4. Verify pagination controls are visible
+
+Expected Results:
+- All products should be displayed
+- Each product should show required information
+- Maximum 10 products per page
+- Pagination should work correctly
+
+---
+
+TEST CASE: TC-007
+Title: Search Product by Name
+Priority: High
+Module: Product Browsing
+
+Preconditions:
+- User is on the products page
+- Products with name "Laptop" exist
+
+Steps:
+1. Click on search box
+2. Enter "Laptop"
+3. Click "Search" button
+4. Wait for results to load
+
+Expected Results:
+- Only products with "Laptop" in name should display
+- Search should be case-insensitive
+- Results count should be shown
+- "No results found" if no matches
+
+---
+
+TEST CASE: TC-008
+Title: View Product Details
+Priority: High
+Module: Product Browsing
+
+Preconditions:
+- User is on the products page
+- A product exists
+
+Steps:
+1. Click on any product
+2. Verify product details page loads
+3. Verify all information is displayed
+
+Expected Results:
+- Product details page should load
+- Should show: description, specifications, price, rating
+- Should show "Add to Cart" button
+- Should show customer reviews
+
+---
+
+================================================================================
+MODULE 3: SHOPPING CART
+================================================================================
+
+TEST CASE: TC-009
+Title: Add Product to Cart
+Priority: High
+Module: Shopping Cart
+
+Preconditions:
+- User is logged in
+- User is viewing a product
+- Product is in stock
+
+Steps:
+1. Click "Add to Cart" button
+2. Verify success message appears
+3. Check cart count in header
+
+Expected Results:
+- Product should be added to cart
+- Success message: "Product added to cart"
+- Cart count should increase by 1
+- User should remain on product page
+
+---
+
+TEST CASE: TC-010
+Title: View Shopping Cart
+Priority: High
+Module: Shopping Cart
+
+Preconditions:
+- User has items in cart
+
+Steps:
+1. Click on cart icon in header
+2. Verify cart page loads
+3. Verify all items are displayed
+
+Expected Results:
+- Cart page should display all items
+- Each item should show: name, price, quantity, subtotal
+- Should show total amount
+- Should show "Proceed to Checkout" button
+
+---
+
+TEST CASE: TC-011
+Title: Modify Cart Quantity
+Priority: Medium
+Module: Shopping Cart
+
+Preconditions:
+- User has items in cart
+- User is on cart page
+
+Steps:
+1. Find a product in cart
+2. Change quantity from 1 to 3
+3. Click "Update" button
+4. Verify total amount updates
+
+Expected Results:
+- Quantity should change to 3
+- Subtotal should update
+- Total amount should recalculate
+- Success message should appear
+
+---
+
+TEST CASE: TC-012
+Title: Remove Item from Cart
+Priority: Medium
+Module: Shopping Cart
+
+Preconditions:
+- User has items in cart
+- User is on cart page
+
+Steps:
+1. Click "Remove" button for a product
+2. Verify product is removed
+3. Verify total updates
+
+Expected Results:
+- Product should be removed from cart
+- Cart count should decrease
+- Total amount should recalculate
+- Confirmation message should appear
+
+---
+
+================================================================================
+MODULE 4: CHECKOUT
+================================================================================
+
+TEST CASE: TC-013
+Title: Enter Shipping Address
+Priority: High
+Module: Checkout
+
+Preconditions:
+- User has items in cart
+- User is on checkout page
+
+Steps:
+1. Click "Proceed to Checkout"
+2. Enter shipping address:
+   - Street: 123 Main St
+   - City: New York
+   - State: NY
+   - Zip: 10001
+3. Click "Continue"
+
+Expected Results:
+- Address should be validated
+- Shipping cost should be calculated
+- User should proceed to payment page
+- Address should be saved for future use
+
+---
+
+TEST CASE: TC-014
+Title: Process Payment with Valid Card
+Priority: High
+Module: Checkout
+
+Preconditions:
+- User is on payment page
+- Shipping address is entered
+
+Steps:
+1. Enter card number: 4532015112830366
+2. Enter expiry: 12/25
+3. Enter CVV: 123
+4. Enter cardholder name: John Doe
+5. Click "Pay Now"
+
+Expected Results:
+- Payment should be processed successfully
+- Order confirmation page should display
+- Order number should be generated
+- Confirmation email should be sent
+
+---
+
+TEST CASE: TC-015
+Title: Apply Discount Code
+Priority: Medium
+Module: Checkout
+
+Preconditions:
+- User is on checkout page
+- Valid discount code: SAVE10 exists
+- Discount: 10% off
+
+Steps:
+1. Enter discount code: SAVE10
+2. Click "Apply"
+3. Verify discount is applied
+
+Expected Results:
+- Discount should be applied
+- Total amount should decrease by 10%
+- Discount amount should be shown
+- Success message should appear
+
+---
+
+================================================================================
+MODULE 5: ORDER MANAGEMENT
+================================================================================
+
+TEST CASE: TC-016
+Title: View Order History
+Priority: Medium
+Module: Order Management
+
+Preconditions:
+- User has completed orders
+- User is logged in
+
+Steps:
+1. Navigate to "My Orders"
+2. Verify all orders are displayed
+3. Click on an order
+
+Expected Results:
+- All orders should be listed
+- Each order should show: order number, date, status, total
+- Order details should be viewable
+- Tracking information should be available
+
+---
+
+TEST CASE: TC-017
+Title: Track Order Status
+Priority: Medium
+Module: Order Management
+
+Preconditions:
+- User has an active order
+- User is on order details page
+
+Steps:
+1. View order details
+2. Check order status
+3. Verify tracking information
+
+Expected Results:
+- Order status should be displayed
+- Status should be one of: Pending, Shipped, Delivered
+- Tracking number should be shown
+- Estimated delivery date should be visible
+
+---
+
+================================================================================
+SUMMARY
+================================================================================
+
+Total Test Cases: 17
+High Priority: 11
+Medium Priority: 6
+
+Modules Covered:
+- Authentication: 5 test cases
+- Product Browsing: 3 test cases
+- Shopping Cart: 4 test cases
+- Checkout: 3 test cases
+- Order Management: 2 test cases
+
+================================================================================
+END OF TEST CASES
+================================================================================

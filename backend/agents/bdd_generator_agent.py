@@ -1,6 +1,14 @@
 from .base_agent import BaseAgent
 from typing import Dict, Any, List
 import uuid
+import re
+from utils.openai_client import openai_client
+
+SYSTEM_PROMPT = """You are an expert Senior QA Automation Architect with 15+ years of experience designing enterprise Selenium automation frameworks.
+Your ONLY responsibility is to generate production-ready Cucumber .feature files.
+Generate VALID Gherkin syntax only. No JSON, no YAML, no explanations.
+Use Given/When/Then structure. Include meaningful scenario names. Include Background if applicable.
+Never use Thread.sleep(). Never output JSON inside .feature files."""
 
 
 class BDDGeneratorAgent(BaseAgent):
@@ -14,8 +22,9 @@ class BDDGeneratorAgent(BaseAgent):
 
             test_cases = input_data['test_cases']
             project_id = input_data['project_id']
+            document_content = input_data.get('document_content', '')
 
-            feature_files = self._generate_feature_files(test_cases, project_id)
+            feature_files = self._generate_feature_files(test_cases, document_content)
 
             output_data = {
                 "project_id": project_id,
@@ -26,72 +35,72 @@ class BDDGeneratorAgent(BaseAgent):
 
             self.log_execution(input_data, output_data, status="success")
             self.logger.info(f"BDD feature files generated: {len(feature_files)}")
-
             return output_data
 
         except Exception as e:
-            self.logger.error(f"BDD generation failed: {str(e)}")
-            output_data = {"error": str(e), "status": "failed"}
-            self.log_execution(input_data, output_data, status="failed", error=str(e))
-            raise
+            self.logger.error(f"BDD generation failed: {str(e)}", exc_info=True)
+            return {"feature_files": [], "total_features": 0, "status": "failed", "error": str(e)}
 
-    def _generate_feature_files(self, test_cases: List[Dict[str, Any]], project_id: str) -> List[Dict[str, Any]]:
-        feature_files = []
-        modules = {}
+    def _generate_feature_files(self, test_cases: List[Dict[str, Any]], document_content: str) -> List[Dict[str, Any]]:
+        test_cases_text = self._format_test_cases(test_cases)
 
+        user_prompt = f"""Generate Cucumber .feature files based on the following test cases extracted from the uploaded documents.
+
+Document Content:
+{document_content[:3000]}
+
+Test Cases:
+{test_cases_text}
+
+Return each feature file using this exact format:
+=== FILE: FeatureName.feature ===
+[feature file content]
+
+Generate complete, executable Cucumber feature files with proper Gherkin syntax."""
+
+        self.logger.info("Calling LLM to generate feature files...")
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
+
+        if response:
+            self.logger.info(f"LLM returned {len(response)} chars for feature files")
+            return self._parse_files(response, '.feature')
+        else:
+            self.logger.warning("LLM returned no response for feature files")
+            return []
+
+    def _format_test_cases(self, test_cases: List[Dict[str, Any]]) -> str:
+        lines = []
         for tc in test_cases:
-            module = tc.get('module', 'general')
-            if module not in modules:
-                modules[module] = []
-            modules[module].append(tc)
+            lines.append(f"Test ID: {tc.get('test_id', 'TC-001')}")
+            lines.append(f"Scenario: {tc.get('scenario', '')}")
+            lines.append(f"Preconditions: {', '.join(tc.get('preconditions', []))}")
+            lines.append(f"Steps: {', '.join(tc.get('steps', []))}")
+            lines.append(f"Expected: {', '.join(tc.get('expected_results', []))}")
+            lines.append("")
+        return "\n".join(lines)
 
-        for module, tests in modules.items():
-            feature_file = {
+    def _parse_files(self, response: str, extension: str) -> List[Dict[str, Any]]:
+        files = []
+        parts = re.split(r'=== FILE: (.+?) ===', response)
+        i = 1
+        while i < len(parts) - 1:
+            filename = parts[i].strip()
+            content = parts[i + 1].strip()
+            if content:
+                files.append({
+                    "feature_id": str(uuid.uuid4()),
+                    "feature_name": filename.replace(extension, '').replace('_', ' '),
+                    "filename": filename if filename.endswith(extension) else filename + extension,
+                    "content": content
+                })
+            i += 2
+
+        if not files and response.strip():
+            files.append({
                 "feature_id": str(uuid.uuid4()),
-                "feature_name": f"{module.replace('_', ' ').title()} Feature",
-                "filename": f"{module}.feature",
-                "scenarios": self._generate_scenarios(tests),
-                "background": self._generate_background()
-            }
-            feature_files.append(feature_file)
+                "feature_name": "Generated Feature",
+                "filename": f"generated{extension}",
+                "content": response.strip()
+            })
 
-        return feature_files
-
-    def _generate_scenarios(self, test_cases: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        scenarios = []
-        for tc in test_cases:
-            scenario = {
-                "scenario_id": str(uuid.uuid4()),
-                "scenario_name": tc.get('scenario', 'Test Scenario'),
-                "given": self._generate_given_steps(tc),
-                "when": self._generate_when_steps(tc),
-                "then": self._generate_then_steps(tc)
-            }
-            scenarios.append(scenario)
-        return scenarios
-
-    def _generate_background(self) -> Dict[str, Any]:
-        return {
-            "given": [
-                "User is on the application login page",
-                "Browser is initialized with required capabilities"
-            ]
-        }
-
-    def _generate_given_steps(self, test_case: Dict[str, Any]) -> List[str]:
-        steps = test_case.get('preconditions', [])
-        if not steps:
-            steps = ["User is logged in", "Application is ready"]
-        return steps
-
-    def _generate_when_steps(self, test_case: Dict[str, Any]) -> List[str]:
-        steps = test_case.get('steps', [])
-        if not steps:
-            steps = ["User performs the action"]
-        return steps
-
-    def _generate_then_steps(self, test_case: Dict[str, Any]) -> List[str]:
-        steps = test_case.get('expected_results', [])
-        if not steps:
-            steps = ["Expected result is achieved"]
-        return steps
+        return files

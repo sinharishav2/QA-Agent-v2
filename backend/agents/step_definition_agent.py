@@ -1,6 +1,21 @@
 from .base_agent import BaseAgent
 from typing import Dict, Any, List
 import uuid
+import re
+from utils.openai_client import openai_client
+
+SYSTEM_PROMPT = """You are an expert Senior QA Automation Architect with 15+ years of experience designing enterprise Selenium automation frameworks.
+Your ONLY responsibility is to generate production-ready Java Cucumber Step Definition classes.
+Rules:
+- package stepdefinitions;
+- Use @Given, @When, @Then from io.cucumber.java.en
+- Use parameterized steps: {string}, {int}
+- Reference page objects for all interactions
+- Use Assert from org.junit.Assert for assertions
+- Use WebDriverWait, never Thread.sleep()
+- No duplicate step definitions
+- No placeholder implementations - every method must have real code
+- Every file must compile"""
 
 
 class StepDefinitionAgent(BaseAgent):
@@ -14,8 +29,9 @@ class StepDefinitionAgent(BaseAgent):
 
             feature_files = input_data['feature_files']
             project_id = input_data['project_id']
+            page_objects = input_data.get('page_objects', [])
 
-            step_definitions = self._generate_step_definitions(feature_files)
+            step_definitions = self._generate_step_definitions(feature_files, page_objects)
 
             output_data = {
                 "project_id": project_id,
@@ -26,81 +42,70 @@ class StepDefinitionAgent(BaseAgent):
 
             self.log_execution(input_data, output_data, status="success")
             self.logger.info(f"Step definitions generated: {len(step_definitions)}")
-
             return output_data
 
         except Exception as e:
-            self.logger.error(f"Step definition generation failed: {str(e)}")
-            output_data = {"error": str(e), "status": "failed"}
-            self.log_execution(input_data, output_data, status="failed", error=str(e))
-            raise
+            self.logger.error(f"Step definition generation failed: {str(e)}", exc_info=True)
+            return {"step_definitions": [], "total_steps": 0, "status": "failed", "error": str(e)}
 
-    def _generate_step_definitions(self, feature_files: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-        step_definitions = []
+    def _generate_step_definitions(self, feature_files: List[Dict[str, Any]], page_objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        feature_content = "\n\n".join([
+            f"Feature: {f.get('feature_name','')}\n{f.get('content','')}"
+            for f in feature_files
+        ])
+        page_object_names = [p.get('class_name') or p.get('page_name', '') for p in page_objects]
 
-        for feature in feature_files:
-            scenarios = feature.get('scenarios', [])
-            for scenario in scenarios:
-                given_steps = scenario.get('given', [])
-                when_steps = scenario.get('when', [])
-                then_steps = scenario.get('then', [])
+        user_prompt = f"""Generate Java Cucumber Step Definition classes for the following feature files.
 
-                for step in given_steps:
-                    step_def = self._create_step_definition(step, "given", feature.get('feature_name'))
-                    step_definitions.append(step_def)
+Feature Files:
+{feature_content[:3000]}
 
-                for step in when_steps:
-                    step_def = self._create_step_definition(step, "when", feature.get('feature_name'))
-                    step_definitions.append(step_def)
+Available Page Objects:
+{', '.join(page_object_names)}
 
-                for step in then_steps:
-                    step_def = self._create_step_definition(step, "then", feature.get('feature_name'))
-                    step_definitions.append(step_def)
+Requirements:
+- package stepdefinitions;
+- Import and instantiate each page object
+- Implement every step from every feature file
+- Use Assert.assertEquals / Assert.assertTrue for validations
+- Use parameterized steps where applicable
 
-        return step_definitions
+Return each Java class using this exact format:
+=== FILE: ClassName.java ===
+[complete Java class content]"""
 
-    def _create_step_definition(self, step_text: str, step_type: str, feature_name: str) -> Dict[str, Any]:
-        return {
-            "step_id": str(uuid.uuid4()),
-            "step_text": step_text,
-            "step_type": step_type,
-            "feature": feature_name,
-            "implementation": self._generate_implementation(step_text, step_type),
-            "page_objects_used": self._identify_page_objects(step_text),
-            "assertions": self._identify_assertions(step_text)
-        }
+        self.logger.info("Calling LLM to generate step definitions...")
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
 
-    def _generate_implementation(self, step_text: str, step_type: str) -> str:
-        if step_type == "given":
-            return f"@Given(\"{step_text}\")\npublic void {self._to_method_name(step_text)}() {{\n    // Setup preconditions\n}}"
-        elif step_type == "when":
-            return f"@When(\"{step_text}\")\npublic void {self._to_method_name(step_text)}() {{\n    // Perform action\n}}"
+        if response:
+            self.logger.info(f"LLM returned {len(response)} chars for step definitions")
+            return self._parse_java_files(response)
         else:
-            return f"@Then(\"{step_text}\")\npublic void {self._to_method_name(step_text)}() {{\n    // Assert expected result\n}}"
+            self.logger.warning("LLM returned no response for step definitions")
+            return []
 
-    def _to_method_name(self, step_text: str) -> str:
-        words = step_text.lower().split()
-        method_name = ''.join(word.capitalize() for word in words if word.isalnum())
-        return method_name[0].lower() + method_name[1:] if method_name else "step"
+    def _parse_java_files(self, response: str) -> List[Dict[str, Any]]:
+        files = []
+        parts = re.split(r'=== FILE: (.+?) ===', response)
+        i = 1
+        while i < len(parts) - 1:
+            filename = parts[i].strip()
+            content = parts[i + 1].strip()
+            if content:
+                files.append({
+                    "step_id": str(uuid.uuid4()),
+                    "name": filename.replace('.java', ''),
+                    "filename": filename if filename.endswith('.java') else filename + '.java',
+                    "content": content
+                })
+            i += 2
 
-    def _identify_page_objects(self, step_text: str) -> List[str]:
-        page_objects = []
-        if any(word in step_text.lower() for word in ['login', 'username', 'password']):
-            page_objects.append("LoginPage")
-        if any(word in step_text.lower() for word in ['dashboard', 'welcome', 'logout']):
-            page_objects.append("DashboardPage")
-        if any(word in step_text.lower() for word in ['form', 'submit', 'enter']):
-            page_objects.append("FormPage")
-        if any(word in step_text.lower() for word in ['result', 'table', 'export']):
-            page_objects.append("ResultsPage")
-        return page_objects
+        if not files and response.strip():
+            files.append({
+                "step_id": str(uuid.uuid4()),
+                "name": "StepDefinitions",
+                "filename": "StepDefinitions.java",
+                "content": response.strip()
+            })
 
-    def _identify_assertions(self, step_text: str) -> List[str]:
-        assertions = []
-        if any(word in step_text.lower() for word in ['displayed', 'shown', 'visible']):
-            assertions.append("isDisplayed()")
-        if any(word in step_text.lower() for word in ['error', 'message', 'text']):
-            assertions.append("getText()")
-        if any(word in step_text.lower() for word in ['enabled', 'disabled', 'clickable']):
-            assertions.append("isEnabled()")
-        return assertions
+        return files

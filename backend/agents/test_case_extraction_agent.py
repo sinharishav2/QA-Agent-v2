@@ -7,21 +7,26 @@ from utils.openai_client import openai_client
 class TestCaseExtractionAgent(BaseAgent):
     def __init__(self):
         super().__init__("TestCaseExtractionAgent")
+        print("TestCaseExtractionAgent initialized")
 
     def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
+        print(f"TestCaseExtractionAgent.execute called")
         try:
+            self.logger.info(f"TestCaseExtractionAgent.execute called with input keys: {input_data.keys()}")
+            
             if not self.validate_input(input_data, ['document_id', 'parsed_content']):
                 raise ValueError("Missing required input fields")
 
             document_id = input_data['document_id']
             parsed_content = input_data['parsed_content']
+            
+            self.logger.info(f"Extracting test cases for document: {document_id}")
 
             test_cases = self._extract_test_cases(parsed_content)
+            self.logger.info(f"_extract_test_cases returned {len(test_cases)} test cases")
             
-            # Ensure we always have test cases - use defaults if extraction fails
-            if not test_cases:
-                self.logger.warning("No test cases extracted, using default test cases")
-                test_cases = self._generate_default_test_cases()
+            # Return whatever was extracted - don't use defaults
+            # This ensures we only return LLM-generated content from user documents
 
             output_data = {
                 "document_id": document_id,
@@ -36,33 +41,37 @@ class TestCaseExtractionAgent(BaseAgent):
             return output_data
 
         except Exception as e:
-            self.logger.error(f"Test case extraction failed: {str(e)}")
-            # Return default test cases even on error
-            default_cases = self._generate_default_test_cases()
+            self.logger.error(f"Test case extraction failed: {str(e)}", exc_info=True)
+            # Return empty test cases on error - don't use defaults
             output_data = {
                 "document_id": input_data.get('document_id'),
-                "test_cases": default_cases,
-                "total_test_cases": len(default_cases),
-                "status": "extracted_with_defaults",
+                "test_cases": [],
+                "total_test_cases": 0,
+                "status": "failed",
                 "error": str(e)
             }
-            self.log_execution(input_data, output_data, status="success_with_defaults", error=str(e))
+            self.log_execution(input_data, output_data, status="failed", error=str(e))
             return output_data
 
     def _extract_test_cases(self, parsed_content: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Extract test cases from document content using OpenAI"""
+        """Extract test cases from document content using LLM"""
+        print("_extract_test_cases called")
         self.logger.info("Starting test case extraction from document")
         test_cases = []
         
         # Prepare content from the document
         content_text = self._prepare_content_text(parsed_content)
+        print(f"Content length: {len(content_text)}")
         self.logger.info(f"Document content length: {len(content_text)}")
+        self.logger.info(f"Content preview: {content_text[:500]}")
         
         if len(content_text.strip()) > 0:
-            # Try to extract using OpenAI
+            # Try to extract using OpenAI/Azure
             try:
-                self.logger.info("Attempting OpenAI extraction...")
+                self.logger.info("Calling openai_client.extract_test_cases...")
                 openai_response = openai_client.extract_test_cases(content_text)
+                self.logger.info(f"OpenAI response type: {type(openai_response)}")
+                self.logger.info(f"OpenAI response: {openai_response}")
                 
                 if openai_response and len(openai_response.strip()) > 0:
                     self.logger.info(f"OpenAI returned response of length: {len(openai_response)}")
@@ -71,14 +80,11 @@ class TestCaseExtractionAgent(BaseAgent):
                 else:
                     self.logger.warning("OpenAI returned empty response")
             except Exception as e:
-                self.logger.error(f"OpenAI extraction error: {str(e)}")
+                self.logger.error(f"OpenAI extraction error: {str(e)}", exc_info=True)
+        else:
+            self.logger.warning("Document content is empty")
         
-        # If no test cases extracted from document, use defaults
-        if not test_cases:
-            self.logger.warning("No test cases from document, using defaults")
-            test_cases = self._generate_default_test_cases()
-        
-        self.logger.info(f"Total test cases to return: {len(test_cases)}")
+        self.logger.info(f"Total test cases extracted: {len(test_cases)}")
         return test_cases
     
     def _extract_from_tables(self, parsed_content: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -138,6 +144,37 @@ class TestCaseExtractionAgent(BaseAgent):
         """Parse OpenAI response into structured test cases"""
         test_cases = []
         
+        self.logger.info(f"Parsing OpenAI response of length {len(openai_response)}")
+        
+        # Try to parse JSON first (if LLM returned JSON format)
+        try:
+            import json
+            # Look for JSON array in the response
+            if '[' in openai_response and ']' in openai_response:
+                json_start = openai_response.find('[')
+                json_end = openai_response.rfind(']') + 1
+                json_str = openai_response[json_start:json_end]
+                parsed = json.loads(json_str)
+                
+                if isinstance(parsed, list):
+                    for item in parsed:
+                        test_case = {
+                            "test_id": item.get('testCaseId') or item.get('test_id') or f"TC-{len(test_cases)+1}",
+                            "scenario": item.get('description') or item.get('scenario') or "",
+                            "preconditions": item.get('preconditions') or [],
+                            "steps": item.get('steps') or [],
+                            "expected_results": item.get('expectedResults') or item.get('expected_results') or [],
+                            "test_data": item.get('testData') or item.get('test_data') or {},
+                            "priority": item.get('priority') or "medium",
+                            "module": item.get('module') or "general"
+                        }
+                        test_cases.append(test_case)
+                    self.logger.info(f"Parsed {len(test_cases)} test cases from JSON")
+                    return test_cases
+        except Exception as e:
+            self.logger.debug(f"JSON parsing failed: {str(e)}, trying text parsing")
+        
+        # Fallback to text parsing
         lines = openai_response.split('\n')
         current_tc = None
         
@@ -146,13 +183,19 @@ class TestCaseExtractionAgent(BaseAgent):
             if not line:
                 continue
             
-            if line.startswith('TC-') or (current_tc is None and ':' in line):
+            if line.startswith('TC-') or line.startswith('**TC-'):
                 if current_tc:
                     test_cases.append(current_tc)
                 
-                parts = line.split(':', 1)
-                test_id = parts[0].strip()
-                scenario = parts[1].strip() if len(parts) > 1 else ""
+                # Extract test ID and scenario
+                clean_line = line.replace('**', '')
+                if ':' in clean_line:
+                    parts = clean_line.split(':', 1)
+                    test_id = parts[0].strip()
+                    scenario = parts[1].strip() if len(parts) > 1 else ""
+                else:
+                    test_id = clean_line
+                    scenario = ""
                 
                 current_tc = {
                     "test_id": test_id,
@@ -164,13 +207,24 @@ class TestCaseExtractionAgent(BaseAgent):
                     "priority": "medium",
                     "module": "general"
                 }
-            elif current_tc and line.startswith('-'):
-                current_tc["steps"].append(line[1:].strip())
+            elif current_tc:
+                if line.startswith('Scenario:'):
+                    current_tc["scenario"] = line.replace('Scenario:', '').strip()
+                elif line.startswith('Preconditions:') or line.startswith('- '):
+                    if line.startswith('- '):
+                        current_tc["preconditions"].append(line[2:].strip())
+                elif line.startswith('Steps:'):
+                    pass  # Skip header
+                elif line.startswith('1.') or line.startswith('2.') or line.startswith('3.'):
+                    current_tc["steps"].append(line.split('.', 1)[1].strip() if '.' in line else line)
+                elif line.startswith('Expected'):
+                    pass  # Skip header
         
         if current_tc:
             test_cases.append(current_tc)
         
-        return test_cases if test_cases else self._generate_default_test_cases()
+        self.logger.info(f"Parsed {len(test_cases)} test cases from text")
+        return test_cases
     
     def _generate_default_test_cases(self) -> List[Dict[str, Any]]:
         """Generate default test cases if extraction fails"""

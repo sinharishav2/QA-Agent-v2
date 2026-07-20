@@ -1,5 +1,8 @@
 from pydantic_settings import BaseSettings
 from typing import Optional
+import os
+
+_ENV_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env")
 
 
 class Settings(BaseSettings):
@@ -11,9 +14,14 @@ class Settings(BaseSettings):
     database_url: str = "postgresql://user:password@localhost:5432/qa_ai_platform"
     redis_url: str = "redis://localhost:6379/0"
 
+    # LLM Configuration
+    llm_provider: Optional[str] = None
     openai_api_key: Optional[str] = None
+    openai_model: Optional[str] = None
     azure_openai_api_key: Optional[str] = None
     azure_openai_endpoint: Optional[str] = None
+    azure_openai_api_version: Optional[str] = None
+    azure_openai_deployment: Optional[str] = None
     google_api_key: Optional[str] = None
 
     upload_dir: str = "./uploads"
@@ -28,7 +36,7 @@ class Settings(BaseSettings):
     log_level: str = "INFO"
 
     class Config:
-        env_file = ".env"
+        env_file = _ENV_FILE
         case_sensitive = False
 
 

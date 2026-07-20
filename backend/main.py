@@ -3,8 +3,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from loguru import logger
 import sys
 
+# Configure logging FIRST so all initialization messages are captured
+logger.remove()
+logger.add(sys.stdout, level="INFO")
+
 from config import settings
-from api.routes import router
+from api.routes import router, set_orchestrator
 
 # Try to import database, but handle gracefully if psycopg2 is not available
 try:
@@ -30,9 +34,6 @@ from agents.step_definition_agent import StepDefinitionAgent
 from agents.locator_intelligence_agent import LocatorIntelligenceAgent
 from agents.utility_generator_agent import UtilityGeneratorAgent
 from orchestrator.orchestrator_agent import OrchestratorAgent
-
-logger.remove()
-logger.add(sys.stdout, level=settings.log_level)
 
 app = FastAPI(
     title="QA AI Automation Platform",
@@ -86,6 +87,9 @@ orchestrator.register_agent("StepDefinitionAgent", step_definition_agent)
 orchestrator.register_agent("LocatorIntelligenceAgent", locator_intelligence_agent)
 orchestrator.register_agent("UtilityGeneratorAgent", utility_generator_agent)
 
+# Inject the configured orchestrator into routes
+set_orchestrator(orchestrator)
+
 app.include_router(router)
 
 @app.on_event("startup")
@@ -105,8 +109,7 @@ async def shutdown_event():
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(
-        "main:app",
+        app,
         host=settings.fastapi_host,
-        port=settings.fastapi_port,
-        reload=False
+        port=settings.fastapi_port
     )

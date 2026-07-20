@@ -32,7 +32,13 @@ class DocumentParserAgent(BaseAgent):
             return output_data
 
         except Exception as e:
-            self.logger.error(f"Document parsing failed: {str(e)}")
-            output_data = {"error": str(e), "status": "failed"}
+            self.logger.error(f"Document parsing failed for {input_data.get('file_path')}: {str(e)}", exc_info=True)
+            output_data = {
+                "document_id": input_data.get('document_id'),
+                "document_type": input_data.get('document_type'),
+                "parsed_content": {"paragraphs": [], "lines": [], "content": "", "tables": [], "headings": []},
+                "status": "failed",
+                "error": str(e)
+            }
             self.log_execution(input_data, output_data, status="failed", error=str(e))
-            raise
+            return output_data

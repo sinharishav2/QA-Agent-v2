@@ -12,44 +12,106 @@ except ImportError:
 class OpenAIClient:
     def __init__(self):
         self.client = None
-        
+        self.deployment_name = None
+        self.is_azure = False
+
+        print(f"[OpenAIClient] INIT - azure_key set: {bool(settings.azure_openai_api_key)}, endpoint set: {bool(settings.azure_openai_endpoint)}, openai_key set: {bool(settings.openai_api_key)}")
+        logger.info(f"OpenAIClient init - azure_key: {'SET' if settings.azure_openai_api_key else 'MISSING'}, endpoint: {'SET' if settings.azure_openai_endpoint else 'MISSING'}, deployment: {settings.azure_openai_deployment or 'NOT SET'}")
+
         # Check if Azure OpenAI is configured
         if settings.azure_openai_api_key and settings.azure_openai_endpoint:
             try:
                 self.client = AzureOpenAI(
                     api_key=settings.azure_openai_api_key,
-                    api_version="2024-02-15-preview",
+                    api_version=settings.azure_openai_api_version or "2024-12-01-preview",
                     azure_endpoint=settings.azure_openai_endpoint
                 )
+                self.deployment_name = settings.azure_openai_deployment or "gpt-4o-mini"
                 self.is_azure = True
-                logger.info("Azure OpenAI client initialized successfully")
+                logger.info(f"Azure OpenAI client initialized successfully with deployment: {self.deployment_name}")
+                print(f"[OpenAIClient] Azure OpenAI initialized OK, deployment={self.deployment_name}")
             except Exception as e:
-                logger.warning(f"Failed to initialize Azure OpenAI: {str(e)}")
+                logger.error(f"Failed to initialize Azure OpenAI: {str(e)}", exc_info=True)
+                print(f"[OpenAIClient] Azure init FAILED: {str(e)}")
                 self.client = None
-        
+
         # Fallback to standard OpenAI
         elif settings.openai_api_key:
             try:
                 self.client = OpenAI(api_key=settings.openai_api_key)
                 self.is_azure = False
                 logger.info("OpenAI client initialized successfully")
+                print("[OpenAIClient] Standard OpenAI initialized OK")
             except Exception as e:
-                logger.warning(f"Failed to initialize OpenAI: {str(e)}")
+                logger.error(f"Failed to initialize OpenAI: {str(e)}", exc_info=True)
+                print(f"[OpenAIClient] Standard OpenAI init FAILED: {str(e)}")
                 self.client = None
         else:
             logger.warning("OpenAI API key not configured. OpenAI features will be unavailable.")
+            print("[OpenAIClient] WARNING: No API key configured - client will be None")
+
+    def _try_reinitialize(self):
+        """Lazy re-initialization if client is None"""
+        if self.client is not None:
+            return
+        print("[OpenAIClient] _try_reinitialize called - attempting to create client...")
+        if settings.azure_openai_api_key and settings.azure_openai_endpoint:
+            try:
+                self.client = AzureOpenAI(
+                    api_key=settings.azure_openai_api_key,
+                    api_version=settings.azure_openai_api_version or "2024-12-01-preview",
+                    azure_endpoint=settings.azure_openai_endpoint
+                )
+                self.deployment_name = settings.azure_openai_deployment or "gpt-4o-mini"
+                self.is_azure = True
+                print(f"[OpenAIClient] Re-initialization OK, deployment={self.deployment_name}")
+                logger.info(f"Azure OpenAI re-initialized, deployment={self.deployment_name}")
+            except Exception as e:
+                print(f"[OpenAIClient] Re-initialization FAILED: {e}")
+                logger.error(f"Azure OpenAI re-initialization failed: {e}", exc_info=True)
+        elif settings.openai_api_key:
+            try:
+                self.client = OpenAI(api_key=settings.openai_api_key)
+                self.is_azure = False
+                print("[OpenAIClient] Re-initialization OK (standard OpenAI)")
+            except Exception as e:
+                print(f"[OpenAIClient] Re-initialization FAILED: {e}")
+
+    def generate_with_system_prompt(self, system_prompt: str, user_prompt: str, temperature: float = 0.3, max_tokens: int = 4000) -> Optional[str]:
+        """Generate content using a system prompt + user prompt"""
+        if not self.client:
+            self._try_reinitialize()
+        if not self.client:
+            logger.error("OpenAI client not initialized - check AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT in .env")
+            return None
+        try:
+            response = self.client.chat.completions.create(
+                model=self.deployment_name if self.is_azure else "gpt-3.5-turbo",
+                messages=[
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": user_prompt}
+                ],
+                temperature=temperature,
+                max_tokens=max_tokens,
+            )
+            return response.choices[0].message.content
+        except Exception as e:
+            logger.error(f"Error generating content with system prompt: {str(e)}")
+            return None
 
     def generate_content(self, prompt: str, temperature: float = 0.7, max_tokens: int = 2000) -> Optional[str]:
         """Generate content using OpenAI API"""
         if not self.client:
-            logger.error("OpenAI client not initialized")
+            self._try_reinitialize()
+        if not self.client:
+            logger.error("OpenAI client not initialized - check AZURE_OPENAI_API_KEY and AZURE_OPENAI_ENDPOINT in .env")
             return None
         
         try:
             if self.is_azure:
-                # For Azure, use deployment name instead of model name
+                # For Azure, use deployment name
                 response = self.client.chat.completions.create(
-                    model="gpt-4-turbo",  # This should match your Azure deployment name
+                    model=self.deployment_name,
                     messages=[{"role": "user", "content": prompt}],
                     temperature=temperature,
                     max_tokens=max_tokens,
@@ -63,7 +125,7 @@ class OpenAIClient:
                 )
             return response.choices[0].message.content
         except Exception as e:
-            logger.error(f"Error generating content with OpenAI: {str(e)}")
+            logger.error(f"Error generating content with OpenAI: {str(e)}", exc_info=True)
             return None
 
     def extract_requirements(self, document_content: str) -> Optional[str]:
