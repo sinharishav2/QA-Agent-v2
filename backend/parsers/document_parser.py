@@ -52,21 +52,47 @@ class DocumentParser:
     def parse_excel(self, file_path: str) -> Dict[str, Any]:
         if not PANDAS_AVAILABLE:
             self.logger.warning("pandas not available. Returning empty Excel data.")
-            return {"sheets": {}, "sheet_names": []}
+            return {"sheets": {}, "sheet_names": [], "content": "", "paragraphs": [], "lines": [], "headings": [], "tables": []}
         
         try:
             excel_file = pd.ExcelFile(file_path)
             sheets = {}
+            text_parts = []
+            tables = []
 
             for sheet_name in excel_file.sheet_names:
-                df = pd.read_excel(file_path, sheet_name=sheet_name)
-                sheets[sheet_name] = df.to_dict(orient='records')
+                df = pd.read_excel(file_path, sheet_name=sheet_name, dtype=str)
+                df = df.fillna("")
+                records = df.to_dict(orient='records')
+                sheets[sheet_name] = records
 
+                text_parts.append(f"Sheet: {sheet_name}")
+
+                # Build table for structured access
+                if not df.empty:
+                    header_row = list(df.columns)
+                    data_rows = [list(row) for row in df.values]
+                    tables.append([header_row] + data_rows)
+
+                # Build text representation for LLM agents
+                for record in records:
+                    row_text = " | ".join(
+                        f"{k}: {v}" for k, v in record.items() if str(v).strip()
+                    )
+                    if row_text.strip():
+                        text_parts.append(row_text)
+
+            content = "\n".join(text_parts)
             self.logger.info(f"Successfully parsed Excel: {file_path}")
-            
+
             return {
                 "sheets": sheets,
-                "sheet_names": excel_file.sheet_names
+                "sheet_names": excel_file.sheet_names,
+                "content": content,
+                "paragraphs": text_parts,
+                "lines": text_parts,
+                "headings": [f"Sheet: {s}" for s in excel_file.sheet_names],
+                "tables": tables,
             }
         except Exception as e:
             self.logger.error(f"Error parsing Excel {file_path}: {str(e)}")

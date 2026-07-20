@@ -3,6 +3,8 @@ from loguru import logger
 import uuid
 from datetime import datetime
 
+from utils.pkm import pkm
+
 
 class OrchestratorAgent:
     def __init__(self):
@@ -27,19 +29,50 @@ class OrchestratorAgent:
             project_id = input_data.get('project_id')
             documents = input_data.get('documents', [])
 
+            # Step 1: Parse all documents
             parsed_documents = self._execute_document_parsing(workflow_id, documents)
-            # Combine all document content for LLM context
+
+            # Step 2: Ingest into PKM for RAG context
+            try:
+                pkm.ingest_documents(parsed_documents)
+            except Exception as pkm_exc:
+                self.logger.warning(f"PKM ingestion failed (non-fatal): {pkm_exc}")
+
+            # Step 3: Build base document content + PKM-enriched contexts
             document_content = self._extract_combined_content(parsed_documents)
+            expected_output_context = pkm.get_expected_output_context()
+
+            bdd_context = self._build_agent_context(document_content, pkm.get_context_for_agent('bdd'), expected_output_context)
+            po_context = self._build_agent_context(document_content, pkm.get_context_for_agent('page_object'), "")
+            step_context = self._build_agent_context(document_content, pkm.get_context_for_agent('step_definition'), expected_output_context)
+
+            # Step 4: Extraction pipeline
             requirements = self._execute_requirement_extraction(workflow_id, parsed_documents)
             test_cases = self._execute_test_case_extraction(workflow_id, parsed_documents)
             test_designs = self._execute_test_design(workflow_id, test_cases)
             test_data = self._execute_test_data_generation(workflow_id, test_cases)
+
+            # Step 5: Framework + code generation (with enriched context)
             framework = self._execute_framework_selection(workflow_id, project_id)
-            feature_files = self._execute_bdd_generation(workflow_id, test_cases, document_content)
-            page_objects = self._execute_page_object_generation(workflow_id, test_cases, document_content)
+            feature_files = self._execute_bdd_generation(workflow_id, test_cases, bdd_context)
+            page_objects = self._execute_page_object_generation(workflow_id, test_cases, po_context)
             step_definitions = self._execute_step_definition_generation(workflow_id, feature_files, page_objects)
             locators = self._execute_locator_intelligence(workflow_id, page_objects)
             utilities = self._execute_utility_generation(workflow_id, framework)
+
+            # Step 6: Validation
+            validation_result = self._execute_validation(
+                workflow_id, feature_files, page_objects, step_definitions, utilities, requirements, test_cases
+            )
+
+            # Step 7: Traceability map
+            traceability_map = {}
+            try:
+                traceability_map = pkm.build_traceability_map(
+                    requirements, test_cases, feature_files, step_definitions, page_objects
+                )
+            except Exception as trace_exc:
+                self.logger.warning(f"Traceability build failed (non-fatal): {trace_exc}")
 
             output_data = {
                 "workflow_id": workflow_id,
@@ -56,6 +89,8 @@ class OrchestratorAgent:
                 "step_definitions": step_definitions,
                 "locators": locators,
                 "utilities": utilities,
+                "validation_result": validation_result,
+                "traceability_map": traceability_map,
                 "workflow_steps": self.workflow_state[workflow_id]["steps"]
             }
 
@@ -70,6 +105,14 @@ class OrchestratorAgent:
             self.workflow_state[workflow_id]["status"] = "failed"
             self.workflow_state[workflow_id]["error"] = str(e)
             raise
+
+    def _build_agent_context(self, document_content: str, pkm_context: str, extra_context: str) -> str:
+        parts = [document_content]
+        if pkm_context:
+            parts.append(f"\n=== RELEVANT CONTEXT (PKM) ===\n{pkm_context}")
+        if extra_context:
+            parts.append(f"\n=== EXPECTED OUTPUTS / ASSERTIONS ===\n{extra_context}")
+        return "\n".join(parts)
 
     def _execute_document_parsing(self, workflow_id: str, documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing document parsing for workflow {workflow_id}")
@@ -261,6 +304,35 @@ class OrchestratorAgent:
         except Exception as e:
             self.logger.error(f"Utility generation failed: {str(e)}")
             self._log_step(workflow_id, "UtilityGeneration", "failed", {"error": str(e)})
+        return {}
+
+    def _execute_validation(
+        self,
+        workflow_id: str,
+        feature_files: List[Dict[str, Any]],
+        page_objects: List[Dict[str, Any]],
+        step_definitions: List[Dict[str, Any]],
+        utilities: Dict[str, Any],
+        requirements: List[Dict[str, Any]],
+        test_cases: List[Dict[str, Any]],
+    ) -> Dict[str, Any]:
+        self.logger.info(f"Executing validation for workflow {workflow_id}")
+        try:
+            agent = self.agent_registry.get("GeneratedTestScriptValidatorAgent")
+            if agent:
+                result = agent.execute({
+                    "feature_files": feature_files,
+                    "page_objects": page_objects,
+                    "step_definitions": step_definitions,
+                    "utilities": utilities,
+                    "requirements": requirements,
+                    "test_cases": test_cases,
+                })
+                self._log_step(workflow_id, "Validation", "success", result)
+                return result
+        except Exception as e:
+            self.logger.error(f"Validation failed: {str(e)}")
+            self._log_step(workflow_id, "Validation", "failed", {"error": str(e)})
         return {}
 
     def _log_step(self, workflow_id: str, step_name: str, status: str, result: Dict[str, Any]):

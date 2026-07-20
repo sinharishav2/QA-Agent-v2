@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, PlayCircle, FileText } from 'lucide-react'
+import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, PlayCircle, FileText, Clock, Star } from 'lucide-react'
 
 export default function ChatLayout({ 
   children, 
@@ -13,15 +13,11 @@ export default function ChatLayout({
   onInputChange,
   onSendMessage,
   generationStats,
-  onDeleteProject
+  onDeleteProject,
+  savedRuns
 }) {
-  const [conversations, setConversations] = useState([
-    { id: 1, name: 'Project Alpha - QA Setup', date: 'Today' },
-    { id: 2, name: 'E-commerce Testing', date: 'Yesterday' },
-    { id: 3, name: 'API Automation', date: '2 days ago' },
-    { id: 4, name: 'Mobile App Testing', date: '1 week ago' },
-  ])
-  const [activeConversation, setActiveConversation] = useState(1)
+  const [conversations, setConversations] = useState([])
+  const [activeConversation, setActiveConversation] = useState(null)
   const [showRightPanel, setShowRightPanel] = useState(true)
   const [showNewConvModal, setShowNewConvModal] = useState(false)
   const [newConvName, setNewConvName] = useState('')
@@ -61,7 +57,7 @@ export default function ChatLayout({
         setShowNewConvModal(false)
         
         if (onNewConversation) {
-          onNewConversation(data.project_id)
+          onNewConversation(data.project_id, newConvName)
         }
       } else {
         alert('Failed to create project')
@@ -89,25 +85,78 @@ export default function ChatLayout({
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((conv) => (
-            <div
-              key={conv.id}
-              onClick={() => setActiveConversation(conv.id)}
-              className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${
-                activeConversation === conv.id
-                  ? 'bg-blue-900 bg-opacity-30 border-l-4 border-l-blue-500'
-                  : 'hover:bg-gray-800'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <MessageCircle size={18} className="text-blue-400 mt-1 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-100 truncate">{conv.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">{conv.date}</p>
+          {/* Current session */}
+          {conversations.length > 0 && (
+            <div>
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Session</p>
+              {conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => setActiveConversation(conv.id)}
+                  className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${
+                    activeConversation === conv.id
+                      ? 'bg-blue-900 bg-opacity-30 border-l-4 border-l-blue-500'
+                      : 'hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <MessageCircle size={18} className="text-blue-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-100 truncate">{conv.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{conv.date}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
+
+          {/* Run History from localStorage */}
+          {savedRuns && savedRuns.length > 0 && (
+            <div>
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                <Clock size={11} /> Run History
+              </p>
+              {savedRuns.map((run) => (
+                <div
+                  key={run.id}
+                  className="p-3 border-b border-gray-800 hover:bg-gray-800 transition-colors group"
+                >
+                  <div className="flex items-start gap-2">
+                    <Star size={14} className="text-yellow-500 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-200 truncate">{run.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{new Date(run.timestamp).toLocaleString()}</p>
+                      {run.stats && (
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          {run.stats.total_features}feat · {run.stats.total_pages}po
+                          {run.stats.validation_score ? ` · ${run.stats.validation_score}/100` : ''}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={`http://localhost:8000/api/projects/${run.projectId}/download`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-700 text-green-400"
+                      title="Download ZIP"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Download size={14} />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {conversations.length === 0 && (!savedRuns || savedRuns.length === 0) && (
+            <div className="p-6 text-center">
+              <MessageCircle size={32} className="mx-auto text-gray-700 mb-2" />
+              <p className="text-xs text-gray-600">No projects yet.<br/>Click "New Conversation" to start.</p>
+            </div>
+          )}
         </div>
 
         {/* Settings */}
@@ -215,7 +264,7 @@ export default function ChatLayout({
                   <label className="block">
                     <input
                       type="file"
-                      accept=".txt,.docx,.pdf"
+                      accept=".txt,.docx,.pdf,.xlsx,.xls"
                       onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0], 'expected_output')}
                       className="hidden"
                     />

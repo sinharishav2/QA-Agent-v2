@@ -3,6 +3,7 @@ import ChatLayout from '../components/ChatLayout'
 import ChatMessage from '../components/ChatMessage'
 
 const API_BASE_URL = 'http://localhost:8000/api'
+const RUN_HISTORY_KEY = 'qa_agent_run_history'
 
 export default function ChatPage() {
   const [messages, setMessages] = useState([
@@ -14,12 +15,43 @@ export default function ChatPage() {
   ])
   const [inputValue, setInputValue] = useState('')
   const [currentProjectId, setCurrentProjectId] = useState(null)
+  const [currentProjectName, setCurrentProjectName] = useState('')
   const [isGenerating, setIsGenerating] = useState(false)
   const [uploadedFiles, setUploadedFiles] = useState({})
+  const [uploadedFileNames, setUploadedFileNames] = useState({})
   const [generationStats, setGenerationStats] = useState(null)
+  const [savedRuns, setSavedRuns] = useState([])
 
-  const handleNewConversation = (projectId) => {
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(RUN_HISTORY_KEY)
+      if (stored) setSavedRuns(JSON.parse(stored))
+    } catch (_) {}
+  }, [])
+
+  const saveRun = (projectId, projectName, stats, fileNames) => {
+    const run = {
+      id: `run_${Date.now()}`,
+      name: projectName,
+      projectId,
+      timestamp: new Date().toISOString(),
+      uploadedFiles: Object.values(fileNames).filter(Boolean),
+      stats: {
+        total_features: stats.total_features || 0,
+        total_pages: stats.total_pages || 0,
+        total_test_cases: stats.total_test_cases || 0,
+        total_step_definitions: stats.total_step_definitions || 0,
+        validation_score: stats.quality_metrics?.overall_score || null,
+      },
+    }
+    const updated = [run, ...savedRuns].slice(0, 20)
+    setSavedRuns(updated)
+    try { localStorage.setItem(RUN_HISTORY_KEY, JSON.stringify(updated)) } catch (_) {}
+  }
+
+  const handleNewConversation = (projectId, projectName) => {
     setCurrentProjectId(projectId)
+    setCurrentProjectName(projectName || 'New Project')
     setMessages([
       {
         id: 1,
@@ -28,6 +60,7 @@ export default function ChatPage() {
       },
     ])
     setUploadedFiles({})
+    setUploadedFileNames({})
     setGenerationStats(null)
   }
 
@@ -52,6 +85,10 @@ export default function ChatPage() {
         setUploadedFiles({
           ...uploadedFiles,
           [documentType]: true,
+        })
+        setUploadedFileNames({
+          ...uploadedFileNames,
+          [documentType]: file.name,
         })
 
         const newMessage = {
@@ -99,9 +136,12 @@ export default function ChatPage() {
       if (response.ok) {
         const data = await response.json()
         setGenerationStats(data)
+        saveRun(currentProjectId, currentProjectName, data, uploadedFileNames)
+        const qScore = data.quality_metrics?.overall_score
+        const scoreText = qScore != null ? `\n🏆 Quality Score: ${qScore}/100` : ''
         const successMsg = {
           id: messages.length + 2,
-          text: `✓ Code generation complete!\n\n📊 Generated:\n• Test Scripts: ${data.total_test_cases} test cases\n• Feature Files: ${data.total_features} features\n• Page Objects: ${data.total_pages} pages\n\nFramework: ${data.framework?.selected_framework || 'Java/Selenium'}\n\nYou can now download the generated files from the right panel.`,
+          text: `✅ Code generation complete!\n\n📊 Generation Summary:\n• Requirements Parsed: ${data.total_requirements || '—'}\n• Test Cases Parsed: ${data.total_test_cases}\n• Expected Outputs Parsed: ${data.total_expected_outputs || '—'}\n• Feature Files: ${data.total_features}\n• Page Objects: ${data.total_pages}\n• Step Definitions: ${data.total_step_definitions || '—'}\n• Utilities: ${data.total_utilities || '—'}\n\n🔧 Framework: ${data.framework?.selected_framework || 'Java/Selenium'}${scoreText}\n\n⬇️ Click "Download All Files (ZIP)" in the right panel.`,
           isUser: false,
         }
         setMessages((prev) => [...prev.slice(0, -1), successMsg])
@@ -186,6 +226,7 @@ export default function ChatPage() {
       onSendMessage={handleSendMessage}
       generationStats={generationStats}
       onDeleteProject={handleDeleteProject}
+      savedRuns={savedRuns}
     >
       <div className="space-y-4">
         {messages.map((msg) => (
