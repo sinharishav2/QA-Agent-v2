@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, PlayCircle, FileText, Clock, Star } from 'lucide-react'
+import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, FileText, Clock, Star } from 'lucide-react'
 
 export default function ChatLayout({ 
   children, 
@@ -21,7 +21,6 @@ export default function ChatLayout({
   const [showRightPanel, setShowRightPanel] = useState(true)
   const [showNewConvModal, setShowNewConvModal] = useState(false)
   const [newConvName, setNewConvName] = useState('')
-  const [showRunTestsModal, setShowRunTestsModal] = useState(false)
   const [showViewLogsModal, setShowViewLogsModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -356,12 +355,6 @@ export default function ChatLayout({
               <h3 className="text-sm font-semibold text-gray-200 mb-3">Actions</h3>
               <div className="space-y-2">
                 <button
-                  onClick={() => setShowRunTestsModal(true)}
-                  className="w-full text-left px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white transition-colors font-medium flex items-center gap-2"
-                >
-                  <PlayCircle size={14} /> ▶️ Run Tests
-                </button>
-                <button
                   onClick={onGenerateCode}
                   disabled={isGenerating || !currentProjectId}
                   className="w-full text-left px-3 py-2 bg-gray-700 hover:bg-gray-600 rounded text-sm text-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-2"
@@ -452,46 +445,6 @@ export default function ChatLayout({
               <button onClick={handleCreateConversation} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">Create</button>
               <button onClick={() => { setShowNewConvModal(false); setNewConvName('') }} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors">Cancel</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Run Tests Modal */}
-      {showRunTestsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2"><PlayCircle size={20} className="text-blue-400" /> Run Tests</h2>
-              <button onClick={() => setShowRunTestsModal(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
-            </div>
-            <div className="space-y-4 text-sm text-gray-300">
-              <p>To run the generated Java Selenium + Cucumber tests, follow these steps:</p>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">1. Download the generated files:</p>
-                <p className="text-gray-400">Click "Download All Files (ZIP)" and extract to your workspace.</p>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">2. Prerequisites:</p>
-                <ul className="list-disc list-inside space-y-1 text-gray-400">
-                  <li>Java JDK 11+</li>
-                  <li>Maven 3.6+</li>
-                  <li>Chrome browser + ChromeDriver on PATH</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">3. Run all tests:</p>
-                <pre className="bg-gray-800 rounded p-3 text-green-400 text-xs">{`cd your-project-folder\nmvn clean test`}</pre>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">4. Run by tag:</p>
-                <pre className="bg-gray-800 rounded p-3 text-green-400 text-xs">{`mvn test -Dcucumber.filter.tags="@smoke"`}</pre>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">5. Reports:</p>
-                <p className="text-gray-400">Generated at <code className="text-yellow-400">target/cucumber-reports/</code></p>
-              </div>
-            </div>
-            <button onClick={() => setShowRunTestsModal(false)} className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">Close</button>
           </div>
         </div>
       )}

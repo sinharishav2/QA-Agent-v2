@@ -11170,5 +11170,1020 @@
         }
       ]
     }
+  },
+  "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88": {
+    "project_id": "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88",
+    "project_name": "secondrun",
+    "description": "QA Automation Project",
+    "status": "automation_generated",
+    "created_at": "2026-07-20T11:12:34.011398",
+    "updated_at": "2026-07-20T11:15:43.234249",
+    "automation_framework": "java",
+    "generated_artifacts": {
+      "test_cases": [
+        {
+          "test_id": "TC-001",
+          "scenario": "User Registration",
+          "preconditions": [
+            "Scenario: Users must register with a valid email address and a password.",
+            "Preconditions: User is on the registration page.",
+            "Steps:",
+            "Expected Results: A confirmation email is sent with a link that expires in 24 hours.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter a valid email address.",
+            "Enter a password of at least 8 characters.",
+            "Submit the registration form."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-002",
+          "scenario": "User Login",
+          "preconditions": [
+            "Scenario: Registered users can log in with their email and password.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: User is redirected to the dashboard.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the login page.",
+            "Enter the registered email address.",
+            "Enter the correct password."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-003",
+          "scenario": "Account Lockout",
+          "preconditions": [
+            "Scenario: Account lockout after three failed login attempts.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: Account is locked for 15 minutes after the third failed attempt.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the login page.",
+            "Enter the registered email address.",
+            "Enter an incorrect password (repeat this step three times)."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-004",
+          "scenario": "Password Reset",
+          "preconditions": [
+            "Scenario: Users can request a password-reset link via email.",
+            "Preconditions: User has a registered account.",
+            "Steps:",
+            "Expected Results: A password-reset link is sent to the email, which expires after 24 hours and can only be used once.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the password reset page.",
+            "Enter the registered email address.",
+            "Submit the request."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-005",
+          "scenario": "User Logout",
+          "preconditions": [
+            "Scenario: Authenticated users can log out.",
+            "Preconditions: User is logged in.",
+            "Steps:",
+            "Expected Results: User is logged out, and the session is invalidated server-side immediately.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Click the logout button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-006",
+          "scenario": "Product Listing",
+          "preconditions": [
+            "Scenario: Display products with details.",
+            "Preconditions: User is on the product listing page.",
+            "Steps:",
+            "Expected Results: Products are displayed with thumbnail, name, price, and rating, paginated at 12 items per page.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "View the product listing."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-007",
+          "scenario": "Product Search",
+          "preconditions": [
+            "Scenario: Full-text search across product name and description.",
+            "Preconditions: User is on the product search page.",
+            "Steps:",
+            "Expected Results: Search results appear within 2 seconds; display 'No results found' for zero matches.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Enter a search term in the search bar.",
+            "Click the search button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-008",
+          "scenario": "Product Details",
+          "preconditions": [
+            "Scenario: View product details.",
+            "Preconditions: User is on a product page.",
+            "Steps:",
+            "Expected Results: Product page shows description, specifications, stock level, customer reviews, and related products.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Click on a product from the listing."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-009",
+          "scenario": "Add to Cart",
+          "preconditions": [
+            "Scenario: Authenticated users can add products to their cart.",
+            "Preconditions: User is logged in and product is in stock.",
+            "Steps:",
+            "Expected Results: Product is added to the cart, which persists across browser sessions.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to a product page.",
+            "Click the 'Add to Cart' button."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-010",
+          "scenario": "Update Cart",
+          "preconditions": [
+            "Scenario: Users can change item quantity or remove items from the cart.",
+            "Preconditions: User has items in the cart.",
+            "Steps:",
+            "Expected Results: Cart total updates in real time.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the cart page.",
+            "Change the quantity of an item (1\u201399) or remove an item."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-011",
+          "scenario": "Cart Summary",
+          "preconditions": [
+            "Scenario: Display cart summary.",
+            "Preconditions: User has items in the cart.",
+            "Steps:",
+            "Expected Results: Display subtotal, applicable taxes, estimated shipping, and grand total.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the cart page."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-012",
+          "scenario": "Shipping Address",
+          "preconditions": [
+            "Scenario: Users must provide a valid shipping address.",
+            "Preconditions: User is at the checkout page.",
+            "Steps:",
+            "Expected Results: Shipping address is accepted and saved.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter a valid shipping address.",
+            "Select a previously saved address from the dropdown (if available)."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-013",
+          "scenario": "Payment Processing",
+          "preconditions": [
+            "Scenario: Support credit/debit card payments via Stripe.",
+            "Preconditions: User is at the payment page.",
+            "Steps:",
+            "Expected Results: Payment is processed, and card details are not stored on the platform's servers.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Enter valid credit/debit card details.",
+            "Submit the payment."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-014",
+          "scenario": "Order Confirmation",
+          "preconditions": [
+            "Scenario: Show order confirmation after successful payment.",
+            "Preconditions: Payment has been successfully processed.",
+            "Steps:",
+            "Expected Results: Display order confirmation details and send a confirmation email within 30 seconds.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Redirect to the order confirmation page."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-015",
+          "scenario": "Performance Test",
+          "preconditions": [
+            "Scenario: Page load time performance.",
+            "Preconditions: User accesses the platform.",
+            "Steps:",
+            "Expected Results: Page load time is less than 3 seconds.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Measure the page load time on a 4G connection."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-016",
+          "scenario": "Security Compliance",
+          "preconditions": [
+            "Scenario: Ensure HTTPS and OWASP Top-10 mitigations.",
+            "Preconditions: User accesses the platform.",
+            "Steps:",
+            "Expected Results: Platform is secure and compliant with security standards.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Verify that the platform uses HTTPS.",
+            "Check for OWASP Top-10 security mitigations."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-017",
+          "scenario": "Availability Test",
+          "preconditions": [
+            "Scenario: Check platform uptime.",
+            "Preconditions: Monitoring tools are in place.",
+            "Steps:",
+            "Expected Results: Platform maintains 99.9% uptime SLA.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Monitor the platform for uptime."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-018",
+          "scenario": "Accessibility Compliance",
+          "preconditions": [
+            "Scenario: Ensure WCAG 2.1 AA compliance.",
+            "Preconditions: User accesses the platform.",
+            "Steps:",
+            "Expected Results: Platform meets WCAG 2.1 AA standards.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Evaluate the platform for accessibility compliance."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-001",
+          "scenario": "User Registration Success",
+          "preconditions": [
+            "Scenario: User registers with a new email.",
+            "Preconditions: Registration page is open, Email is not already registered.",
+            "Steps:",
+            "Expected Results: User is redirected to a success page, Toast message: 'Registration successful. Please check your email.', Confirmation email is received within 60 seconds.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to /register",
+            "Enter email: newuser@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-002",
+          "scenario": "User Registration Duplicate Email",
+          "preconditions": [
+            "Scenario: User attempts to register with an already registered email.",
+            "Preconditions: An account with email duplicate@example.com already exists.",
+            "Steps:",
+            "Expected Results: Error message: 'An account with this email already exists.', User remains on the registration page, No confirmation email is sent.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to /register",
+            "Enter email: duplicate@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-003",
+          "scenario": "User Login Success",
+          "preconditions": [
+            "Scenario: User logs in with valid credentials.",
+            "Preconditions: User account exists and email is confirmed.",
+            "Steps:",
+            "Expected Results: User is redirected to /dashboard, Welcome message displays the user's name, Navigation bar shows 'Logout' link.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to /login",
+            "Enter email: testuser@example.com",
+            "Enter password: SecurePass@1"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-004",
+          "scenario": "User Login Invalid Password",
+          "preconditions": [
+            "Scenario: User attempts to log in with an invalid password.",
+            "Preconditions: User account exists.",
+            "Steps:",
+            "Expected Results: Error message: 'Invalid email or password.', User remains on /login, Password field is cleared.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to /login",
+            "Enter email: testuser@example.com",
+            "Enter password: WrongPassword"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-005",
+          "scenario": "Product Search Success",
+          "preconditions": [
+            "Scenario: User searches for a product that exists in the catalogue.",
+            "Preconditions: At least one product named 'Laptop' exists in the catalogue.",
+            "Steps:",
+            "Expected Results: Search results page loads within 2 seconds, Results contain at least one product with 'Laptop' in its name, Result count is displayed.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to the home page",
+            "Type 'Laptop' in the search bar",
+            "Press Enter or click the search icon"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-006",
+          "scenario": "Add Product to Cart",
+          "preconditions": [
+            "Scenario: User adds a product to the cart while logged in.",
+            "Preconditions: User is logged in, Product 'Laptop Pro 15' is in stock.",
+            "Steps:",
+            "Expected Results: Success notification: 'Item added to cart.', Cart icon counter updates to reflect new item count, Cart contains 2 units of 'Laptop Pro 15'.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to the product detail page of 'Laptop Pro 15'",
+            "Set quantity to 2",
+            "Click 'Add to Cart'"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-007",
+          "scenario": "Remove Item from Cart",
+          "preconditions": [
+            "Scenario: User removes an item from the cart.",
+            "Preconditions: User is logged in, Cart contains at least one item.",
+            "Steps:",
+            "Expected Results: Item is removed from the cart, Cart total is recalculated immediately, If cart is empty, display 'Your cart is empty.' message.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Navigate to /cart",
+            "Click the 'Remove' icon next to the first item",
+            "Confirm removal in the dialog"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-008",
+          "scenario": "Checkout Process",
+          "preconditions": [
+            "Scenario: User completes a checkout process.",
+            "Preconditions: User is logged in, Cart has at least one item, Valid payment details available.",
+            "Steps:",
+            "Expected Results: Order confirmation page is displayed with order ID, Confirmation email arrives within 30 seconds, Cart is emptied.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to /cart and click 'Proceed to Checkout'",
+            "Enter shipping address",
+            "Enter card number: 4242 4242 4242 4242, Exp: 12/27, CVV: 123"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-009",
+          "scenario": "Password Reset Process",
+          "preconditions": [
+            "Scenario: User resets their password.",
+            "Preconditions: User account exists with email reset@example.com.",
+            "Steps:",
+            "Expected Results: Success message: 'Password reset successfully.', User can log in with the new password, Old password no longer works.",
+            "Priority: High"
+          ],
+          "steps": [
+            "Navigate to /forgot-password",
+            "Enter email: reset@example.com",
+            "Click 'Send Reset Link'"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-010",
+          "scenario": "Account Lockout After Failed Login Attempts",
+          "preconditions": [
+            "Scenario: User's account gets locked after multiple failed login attempts.",
+            "Preconditions: User account exists.",
+            "Steps:",
+            "Expected Results: After 3rd failure: 'Account locked for 15 minutes.', 4th attempt (even with correct password) shows same lockout message, Account unlocks after 15 minutes.",
+            "Priority: Medium"
+          ],
+          "steps": [
+            "Attempt login with wrong password three times in a row",
+            "On the 4th attempt, try correct credentials"
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-001",
+          "scenario": "Valid Registration",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/register with valid user details."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-002",
+          "scenario": "Duplicate Email",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/register with an email that already exists."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-003",
+          "scenario": "Valid Login",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/login with valid email and password."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-004",
+          "scenario": "Wrong Password",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/login with valid email and an incorrect password."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-005",
+          "scenario": "Product Search",
+          "preconditions": [],
+          "steps": [
+            "Send a GET request to /api/products?q=Laptop."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-006",
+          "scenario": "Add to Cart",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/cart/items with the product details."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-007",
+          "scenario": "Remove from Cart",
+          "preconditions": [],
+          "steps": [
+            "Send a DELETE request to /api/cart/items/{id} with the item ID."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-008",
+          "scenario": "Successful Checkout",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/orders with the necessary order details."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-009",
+          "scenario": "Password Reset",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/reset-password with the user's email."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        },
+        {
+          "test_id": "TC-010",
+          "scenario": "Account Lockout",
+          "preconditions": [],
+          "steps": [
+            "Send a POST request to /api/auth/login with invalid credentials multiple times."
+          ],
+          "expected_results": [],
+          "test_data": {},
+          "priority": "medium",
+          "module": "general"
+        }
+      ],
+      "feature_files": [
+        {
+          "feature_id": "67768bac-9cff-4bb6-b32c-9731884de8de",
+          "feature_name": "General",
+          "filename": "General.feature",
+          "content": "Feature: User Management and Product Operations\n\n  Background:\n    Given the user is on the registration page\n\n  @smoke @general @req-001\n  Scenario: User Registration Success\n    Given the email is not already registered\n    When the user enters email \"newuser@example.com\"\n    And the user enters password \"SecurePass@1\"\n    And the user submits the registration form\n    Then the user is redirected to a success page\n    And the toast message should be \"Registration successful. Please check your email.\"\n    And the confirmation email is received within 60 seconds\n\n  @negative @general @req-001\n  Scenario: User Registration Duplicate Email\n    Given an account with email \"duplicate@example.com\" already exists\n    When the user enters email \"duplicate@example.com\"\n    And the user enters password \"SecurePass@1\"\n    And the user submits the registration form\n    Then the error message should be \"An account with this email already exists.\"\n    And the user remains on the registration page\n    And no confirmation email is sent\n\n  @smoke @general @req-002\n  Scenario: User Login Success\n    Given the user account exists and email is confirmed\n    When the user navigates to the login page\n    And the user enters email \"testuser@example.com\"\n    And the user enters password \"SecurePass@1\"\n    Then the user is redirected to the dashboard\n    And the welcome message displays the user's name\n    And the navigation bar shows \"Logout\" link\n\n  @negative @general @req-002\n  Scenario: User Login Invalid Password\n    Given the user account exists\n    When the user navigates to the login page\n    And the user enters email \"testuser@example.com\"\n    And the user enters password \"WrongPassword\"\n    Then the error message should be \"Invalid email or password.\"\n    And the user remains on the login page\n    And the password field is cleared\n\n  @negative @general @req-002\n  Scenario: Account Lockout After Failed Login Attempts\n    Given the user account exists\n    When the user attempts login with wrong password three times in a row\n    And the user tries to log in with correct credentials on the 4th attempt\n    Then the error message should be \"Account locked for 15 minutes.\"\n\n  @smoke @general @req-003\n  Scenario: Password Reset Process\n    Given the user account exists with email \"reset@example.com\"\n    When the user navigates to the password reset page\n    And the user enters email \"reset@example.com\"\n    And the user submits the request\n    Then the success message should be \"Password reset successfully.\"\n    And the user can log in with the new password\n    And the old password no longer works\n\n  @smoke @general @req-005\n  Scenario: Product Search Success\n    Given at least one product named \"Laptop\" exists in the catalogue\n    When the user navigates to the home page\n    And the user types \"Laptop\" in the search bar\n    And the user presses Enter\n    Then the search results page loads within 2 seconds\n    And the results contain at least one product with \"Laptop\" in its name\n\n  @smoke @general @req-008\n  Scenario: Add Product to Cart\n    Given the user is logged in\n    And the product \"Laptop Pro 15\" is in stock\n    When the user navigates to the product detail page of \"Laptop Pro 15\"\n    And the user sets quantity to 2\n    And the user clicks \"Add to Cart\"\n    Then the success notification should be \"Item added to cart.\"\n    And the cart icon counter updates to reflect new item count\n    And the cart contains 2 units of \"Laptop Pro 15\"\n\n  @negative @general @req-009\n  Scenario: Remove Item from Cart\n    Given the user is logged in\n    And the cart contains at least one item\n    When the user navigates to the cart\n    And the user clicks the \"Remove\" icon next to the first item\n    And the user confirms removal in the dialog\n    Then the item is removed from the cart\n    And the cart total is recalculated immediately\n    And if the cart is empty, display \"Your cart is empty.\" message\n\n  @smoke @general @req-013\n  Scenario: Successful Checkout\n    Given the user is logged in\n    And the cart has at least one item\n    And valid payment details are available\n    When the user navigates to the cart and clicks \"Proceed to Checkout\"\n    And the user enters shipping address\n    And the user enters card number \"4242 4242 4242 4242\", Exp: \"12/27\", CVV: \"123\"\n    Then the order confirmation page is displayed with order ID\n    And the confirmation email arrives within 30 seconds\n    And the cart is emptied\n\n  @smoke @general @req-006\n  Scenario: Product Listing\n    Given the user is on the product listing page\n    When the user views the product listing\n    Then products are displayed with thumbnail, name, price, and rating\n    And they are paginated at 12 items per page\n\n  @smoke @general @req-011\n  Scenario: Shipping Address\n    Given the user is at the checkout page\n    When the user enters a valid shipping address\n    And the user selects a previously saved address from the dropdown\n    Then the shipping address is accepted and saved\n\n  @smoke @general @req-012\n  Scenario: Payment Processing\n    Given the user is at the payment page\n    When the user enters valid credit/debit card details\n    And the user submits the payment\n    Then the payment is processed\n    And the card details are not stored on the platform's servers\n\n  @smoke @general @req-014\n  Scenario: Order Confirmation\n    Given the payment has been successfully processed\n    When the user is redirected to the order confirmation page\n    Then the order confirmation details are displayed\n    And a confirmation email is sent within 30 seconds\n\n  @smoke @general @req-015\n  Scenario: Performance Test\n    Given the user accesses the platform\n    When the user measures the page load time on a 4G connection\n    Then the page load time is less than 3 seconds\n\n  @smoke @general @req-016\n  Scenario: Security Compliance\n    Given the user accesses the platform\n    When the user verifies that the platform uses HTTPS\n    And the user checks for OWASP Top-10 security mitigations\n    Then the platform is secure and compliant with security standards\n\n  @smoke @general @req-017\n  Scenario: Availability Test\n    Given monitoring tools are in place\n    When the user monitors the platform for uptime\n    Then the platform maintains 99.9% uptime SLA\n\n  @smoke @general @req-018\n  Scenario: Accessibility Compliance\n    Given the user accesses the platform\n    When the user evaluates the platform for accessibility compliance\n    Then the platform meets WCAG 2.1 AA standards"
+        }
+      ],
+      "page_objects": [
+        {
+          "page_id": "e3555cf2-f620-4446-8531-e90661d85cc0",
+          "class_name": "BasePage",
+          "page_name": "BasePage",
+          "filename": "BasePage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\nimport org.openqa.selenium.support.PageFactory;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class BasePage {\n    protected WebDriver driver;\n    protected WebDriverWait wait;\n\n    public BasePage(WebDriver driver) {\n        this.driver = driver;\n        this.wait = new WebDriverWait(driver, Duration.ofSeconds(10));\n        PageFactory.initElements(driver, this);\n    }\n\n    protected void waitForElementVisible(By locator) {\n        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));\n    }\n\n    protected void waitForElementClickable(By locator) {\n        wait.until(ExpectedConditions.elementToBeClickable(locator));\n    }\n\n    protected String getText(WebElement element) {\n        return element.getText();\n    }\n\n    protected boolean isElementPresent(By locator) {\n        return driver.findElements(locator).size() > 0;\n    }\n}"
+        },
+        {
+          "page_id": "15784401-5327-47df-9e07-1c94b50b498c",
+          "class_name": "GeneralPage",
+          "page_name": "GeneralPage",
+          "filename": "GeneralPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class GeneralPage extends BasePage {\n\n    @FindBy(id = \"search-bar\")\n    private WebElement searchBar;\n\n    @FindBy(css = \"button[type='submit']\")\n    private WebElement searchButton;\n\n    @FindBy(id = \"register-link\")\n    private WebElement registerLink;\n\n    @FindBy(id = \"login-link\")\n    private WebElement loginLink;\n\n    @FindBy(id = \"logout-link\")\n    private WebElement logoutLink;\n\n    @FindBy(id = \"cart-link\")\n    private WebElement cartLink;\n\n    public GeneralPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Enters the search term in the search bar.\n     *\n     * @param searchTerm The term to search for.\n     */\n    public void enterSearchTerm(String searchTerm) {\n        waitForElementVisible(By.id(\"search-bar\"));\n        searchBar.clear();\n        searchBar.sendKeys(searchTerm);\n    }\n\n    /**\n     * Clicks the search button to initiate the search.\n     */\n    public void clickSearch() {\n        waitForElementClickable(By.cssSelector(\"button[type='submit']\"));\n        searchButton.click();\n    }\n\n    /**\n     * Navigates to the registration page.\n     */\n    public void clickRegister() {\n        waitForElementClickable(By.id(\"register-link\"));\n        registerLink.click();\n    }\n\n    /**\n     * Navigates to the login page.\n     */\n    public void clickLogin() {\n        waitForElementClickable(By.id(\"login-link\"));\n        loginLink.click();\n    }\n\n    /**\n     * Clicks the logout link to log out the user.\n     */\n    public void clickLogout() {\n        waitForElementClickable(By.id(\"logout-link\"));\n        logoutLink.click();\n    }\n\n    /**\n     * Navigates to the shopping cart page.\n     */\n    public void clickCart() {\n        waitForElementClickable(By.id(\"cart-link\"));\n        cartLink.click();\n    }\n}"
+        },
+        {
+          "page_id": "dbafdb50-d3f0-40d7-a92c-d8933d136cc7",
+          "class_name": "RegistrationPage",
+          "page_name": "RegistrationPage",
+          "filename": "RegistrationPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class RegistrationPage extends BasePage {\n\n    @FindBy(id = \"email\")\n    private WebElement emailField;\n\n    @FindBy(id = \"password\")\n    private WebElement passwordField;\n\n    @FindBy(id = \"confirm-password\")\n    private WebElement confirmPasswordField;\n\n    @FindBy(css = \"button[type='submit']\")\n    private WebElement registerButton;\n\n    @FindBy(css = \".error-message\")\n    private WebElement errorMessage;\n\n    public RegistrationPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Enters the email address for registration.\n     *\n     * @param email The email address to register.\n     */\n    public void enterEmail(String email) {\n        waitForElementVisible(By.id(\"email\"));\n        emailField.clear();\n        emailField.sendKeys(email);\n    }\n\n    /**\n     * Enters the password for registration.\n     *\n     * @param password The password to register.\n     */\n    public void enterPassword(String password) {\n        waitForElementVisible(By.id(\"password\"));\n        passwordField.clear();\n        passwordField.sendKeys(password);\n    }\n\n    /**\n     * Enters the confirm password for registration.\n     *\n     * @param confirmPassword The confirm password to register.\n     */\n    public void enterConfirmPassword(String confirmPassword) {\n        waitForElementVisible(By.id(\"confirm-password\"));\n        confirmPasswordField.clear();\n        confirmPasswordField.sendKeys(confirmPassword);\n    }\n\n    /**\n     * Clicks the register button to submit the registration form.\n     */\n    public void clickRegister() {\n        waitForElementClickable(By.cssSelector(\"button[type='submit']\"));\n        registerButton.click();\n    }\n\n    /**\n     * Retrieves the error message displayed on the registration page.\n     *\n     * @return The error message text.\n     */\n    public String getErrorMessage() {\n        waitForElementVisible(By.cssSelector(\".error-message\"));\n        return getText(errorMessage);\n    }\n}"
+        },
+        {
+          "page_id": "fe3d4417-32ef-44dd-b202-6e609f7bf290",
+          "class_name": "LoginPage",
+          "page_name": "LoginPage",
+          "filename": "LoginPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class LoginPage extends BasePage {\n\n    @FindBy(id = \"email\")\n    private WebElement emailField;\n\n    @FindBy(id = \"password\")\n    private WebElement passwordField;\n\n    @FindBy(css = \"button[type='submit']\")\n    private WebElement loginButton;\n\n    @FindBy(css = \".error-message\")\n    private WebElement errorMessage;\n\n    public LoginPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Enters the email address for login.\n     *\n     * @param email The email address to log in.\n     */\n    public void enterEmail(String email) {\n        waitForElementVisible(By.id(\"email\"));\n        emailField.clear();\n        emailField.sendKeys(email);\n    }\n\n    /**\n     * Enters the password for login.\n     *\n     * @param password The password to log in.\n     */\n    public void enterPassword(String password) {\n        waitForElementVisible(By.id(\"password\"));\n        passwordField.clear();\n        passwordField.sendKeys(password);\n    }\n\n    /**\n     * Clicks the login button to submit the login form.\n     */\n    public void clickLogin() {\n        waitForElementClickable(By.cssSelector(\"button[type='submit']\"));\n        loginButton.click();\n    }\n\n    /**\n     * Retrieves the error message displayed on the login page.\n     *\n     * @return The error message text.\n     */\n    public String getErrorMessage() {\n        waitForElementVisible(By.cssSelector(\".error-message\"));\n        return getText(errorMessage);\n    }\n}"
+        },
+        {
+          "page_id": "4ea49aa6-1ab9-4984-874e-6628605406f5",
+          "class_name": "ProductPage",
+          "page_name": "ProductPage",
+          "filename": "ProductPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class ProductPage extends BasePage {\n\n    @FindBy(id = \"add-to-cart\")\n    private WebElement addToCartButton;\n\n    @FindBy(id = \"product-quantity\")\n    private WebElement quantityField;\n\n    public ProductPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Clicks the 'Add to Cart' button for the product.\n     */\n    public void clickAddToCart() {\n        waitForElementClickable(By.id(\"add-to-cart\"));\n        addToCartButton.click();\n    }\n\n    /**\n     * Sets the quantity of the product to add to the cart.\n     *\n     * @param quantity The quantity to set (1-99).\n     */\n    public void setQuantity(int quantity) {\n        waitForElementVisible(By.id(\"product-quantity\"));\n        quantityField.clear();\n        quantityField.sendKeys(String.valueOf(quantity));\n    }\n}"
+        },
+        {
+          "page_id": "57e2c8a6-c116-45ce-910d-9a6033d3d9c0",
+          "class_name": "CartPage",
+          "page_name": "CartPage",
+          "filename": "CartPage.java",
+          "content": "package pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.FindBy;\n\npublic class CartPage extends BasePage {\n\n    @FindBy(css = \".cart-item\")\n    private WebElement cartItem;\n\n    @FindBy(css = \".remove-item\")\n    private WebElement removeItemButton;\n\n    @FindBy(id = \"checkout-button\")\n    private WebElement checkoutButton;\n\n    public CartPage(WebDriver driver) {\n        super(driver);\n    }\n\n    /**\n     * Clicks the button to remove an item from the cart.\n     */\n    public void clickRemoveItem() {\n        waitForElementClickable(By.cssSelector(\".remove-item\"));\n        removeItemButton.click();\n    }\n\n    /**\n     * Clicks the checkout button to proceed to the checkout process.\n     */\n    public void clickCheckout() {\n        waitForElementClickable(By.id(\"checkout-button\"));\n        checkoutButton.click();\n    }\n}"
+        }
+      ],
+      "step_definitions": [],
+      "utilities": {
+        "pom": {
+          "utility_id": "8bebade9-3078-4111-9315-825e8dfe8c50",
+          "name": "pom",
+          "filename": "pom.xml",
+          "zip_path": "pom.xml",
+          "content": "```xml\n<project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\">\n    <modelVersion>4.0.0</modelVersion>\n    <groupId>com.example</groupId>\n    <artifactId>selenium-cucumber-framework</artifactId>\n    <version>1.0-SNAPSHOT</version>\n    <properties>\n        <maven.compiler.source>11</maven.compiler.source>\n        <maven.compiler.target>11</maven.compiler.target>\n        <surefire.version>2.22.2</surefire.version>\n    </properties>\n    <dependencies>\n        <dependency>\n            <groupId>org.seleniumhq.selenium</groupId>\n            <artifactId>selenium-java</artifactId>\n            <version>4.18.1</version>\n        </dependency>\n        <dependency>\n            <groupId>io.cucumber</groupId>\n            <artifactId>cucumber-java</artifactId>\n            <version>7.15.0</version>\n        </dependency>\n        <dependency>\n            <groupId>io.cucumber</groupId>\n            <artifactId>cucumber-junit</artifactId>\n            <version>7.15.0</version>\n        </dependency>\n        <dependency>\n            <groupId>junit</groupId>\n            <artifactId>junit</artifactId>\n            <version>4.13.2</version>\n            <scope>test</scope>\n        </dependency>\n        <dependency>\n            <groupId>io.github.bonigarcia</groupId>\n            <artifactId>webdrivermanager</artifactId>\n            <version>5.6.3</version>\n        </dependency>\n        <dependency>\n            <groupId>org.apache.logging.log4j</groupId>\n            <artifactId>log4j-core</artifactId>\n            <version>2.22.1</version>\n        </dependency>\n    </dependencies>\n    <build>\n        <plugins>\n            <plugin>\n                <groupId>org.apache.maven.plugins</groupId>\n                <artifactId>maven-surefire-plugin</artifactId>\n                <version>${surefire.version}</version>\n            </plugin>\n        </plugins>\n    </build>\n</project>\n```"
+        },
+        "src/test/resources/config": {
+          "utility_id": "d7e8a961-e7ec-4920-aeff-ec6367fd6882",
+          "name": "src/test/resources/config",
+          "filename": "src/test/resources/config.properties",
+          "zip_path": "src/test/resources/src/test/resources/config.properties",
+          "content": "```\nbase.url=http://example.com\nbrowser=chrome\nheadless=true\nimplicit.wait=10\nexplicit.wait=20\n```"
+        },
+        "src/test/resources/cucumber": {
+          "utility_id": "a6931754-3bab-4633-afa1-5bebab7baebd",
+          "name": "src/test/resources/cucumber",
+          "filename": "src/test/resources/cucumber.properties",
+          "zip_path": "src/test/resources/src/test/resources/cucumber.properties",
+          "content": "```\ncucumber.publish.quiet=true\ncucumber.ansi-colors.disabled=false\n```"
+        },
+        "src/test/java/config/DriverFactory": {
+          "utility_id": "aafdf300-3f00-4859-97ef-e1d406c45712",
+          "name": "src/test/java/config/DriverFactory",
+          "filename": "src/test/java/config/DriverFactory.java",
+          "zip_path": "src/test/java/utils/src/test/java/config/DriverFactory.java",
+          "content": "```java\npackage config;\n\nimport io.github.bonigarcia.wdm.WebDriverManager;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.chrome.ChromeDriver;\nimport org.openqa.selenium.firefox.FirefoxDriver;\nimport org.openqa.selenium.remote.DesiredCapabilities;\n\npublic class DriverFactory {\n    private static ThreadLocal<WebDriver> driver = new ThreadLocal<>();\n    private static String baseUrl;\n\n    public static void setBaseUrl(String url) {\n        baseUrl = url;\n    }\n\n    public static WebDriver getDriver() {\n        return driver.get();\n    }\n\n    public static void initializeDriver(String browser, boolean headless) {\n        if (\"chrome\".equalsIgnoreCase(browser)) {\n            WebDriverManager.chromedriver().setup();\n            DesiredCapabilities capabilities = new DesiredCapabilities();\n            capabilities.setCapability(\"headless\", headless);\n            driver.set(new ChromeDriver(capabilities));\n        } else if (\"firefox\".equalsIgnoreCase(browser)) {\n            WebDriverManager.firefoxdriver().setup();\n            driver.set(new FirefoxDriver());\n        }\n        driver.get().manage().window().maximize();\n        driver.get().get(baseUrl);\n    }\n\n    public static void quitDriver() {\n        if (driver.get() != null) {\n            driver.get().quit();\n            driver.remove();\n        }\n    }\n}\n```"
+        },
+        "src/test/java/config/ConfigReader": {
+          "utility_id": "08b3e92a-13ca-47d1-8a76-549f7de5fccd",
+          "name": "src/test/java/config/ConfigReader",
+          "filename": "src/test/java/config/ConfigReader.java",
+          "zip_path": "src/test/java/utils/src/test/java/config/ConfigReader.java",
+          "content": "```java\npackage config;\n\nimport java.io.IOException;\nimport java.io.InputStream;\nimport java.util.Properties;\n\npublic class ConfigReader {\n    private Properties properties;\n\n    public ConfigReader() {\n        properties = new Properties();\n        try (InputStream input = getClass().getClassLoader().getResourceAsStream(\"config.properties\")) {\n            if (input == null) {\n                throw new IOException(\"Unable to find config.properties\");\n            }\n            properties.load(input);\n        } catch (IOException ex) {\n            ex.printStackTrace();\n        }\n    }\n\n    public String getString(String key, String defaultValue) {\n        return properties.getProperty(key, defaultValue);\n    }\n\n    public boolean getBoolean(String key, boolean defaultValue) {\n        return Boolean.parseBoolean(properties.getProperty(key, String.valueOf(defaultValue)));\n    }\n}\n```"
+        },
+        "src/test/java/pages/BasePage": {
+          "utility_id": "ee49f3da-8805-461a-82bc-c93b38c9259d",
+          "name": "src/test/java/pages/BasePage",
+          "filename": "src/test/java/pages/BasePage.java",
+          "zip_path": "src/test/java/utils/src/test/java/pages/BasePage.java",
+          "content": "```java\npackage pages;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.WebElement;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class BasePage {\n    protected WebDriver driver;\n    private WebDriverWait wait;\n\n    public BasePage(WebDriver driver) {\n        this.driver = driver;\n        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));\n    }\n\n    public void waitForVisible(By locator) {\n        wait.until(ExpectedConditions.visibilityOfElementLocated(locator));\n    }\n\n    public void waitForClickable(By locator) {\n        wait.until(ExpectedConditions.elementToBeClickable(locator));\n    }\n\n    public String getText(WebElement element) {\n        return element.getText();\n    }\n\n    public boolean isPresent(By locator) {\n        return driver.findElements(locator).size() > 0;\n    }\n\n    public void navigateTo(String url) {\n        driver.get(url);\n    }\n\n    public String getPageTitle() {\n        return driver.getTitle();\n    }\n}\n```"
+        },
+        "src/test/java/hooks/Hooks": {
+          "utility_id": "d8b1202c-c2e9-4f0e-bb34-7aba8be7a868",
+          "name": "src/test/java/hooks/Hooks",
+          "filename": "src/test/java/hooks/Hooks.java",
+          "zip_path": "src/test/java/utils/src/test/java/hooks/Hooks.java",
+          "content": "```java\npackage hooks;\n\nimport config.ConfigReader;\nimport config.DriverFactory;\nimport io.cucumber.java.After;\nimport io.cucumber.java.Before;\nimport org.openqa.selenium.WebDriver;\nimport utils.ScreenshotUtils;\n\npublic class Hooks {\n    private ConfigReader configReader = new ConfigReader();\n\n    @Before(order = 1)\n    public void initializeDriver() {\n        String browser = configReader.getString(\"browser\", \"chrome\");\n        boolean headless = configReader.getBoolean(\"headless\", false);\n        DriverFactory.setBaseUrl(configReader.getString(\"base.url\", \"http://localhost\"));\n        DriverFactory.initializeDriver(browser, headless);\n    }\n\n    @After(order = 1)\n    public void tearDown() {\n        WebDriver driver = DriverFactory.getDriver();\n        if (driver != null) {\n            ScreenshotUtils.captureScreenshot(driver);\n            DriverFactory.quitDriver();\n        }\n    }\n}\n```"
+        },
+        "src/test/java/runners/TestRunner": {
+          "utility_id": "b62d81b8-ec58-4da4-b666-fb7342698b18",
+          "name": "src/test/java/runners/TestRunner",
+          "filename": "src/test/java/runners/TestRunner.java",
+          "zip_path": "src/test/java/utils/src/test/java/runners/TestRunner.java",
+          "content": "```java\npackage runners;\n\nimport io.cucumber.junit.Cucumber;\nimport io.cucumber.junit.CucumberOptions;\nimport org.junit.runner.RunWith;\n\n@RunWith(Cucumber.class)\n@CucumberOptions(\n        features = \"src/test/resources/features\",\n        glue = \"steps\",\n        plugin = {\"pretty\", \"html:target/cucumber-reports/\", \"json:target/cucumber.json\"},\n        tags = \"@smoke\",\n        monochrome = true\n)\npublic class TestRunner {\n}\n```"
+        },
+        "src/test/java/utils/WaitUtils": {
+          "utility_id": "184f2e3b-96c0-48c9-9dbf-afe1697ce8ca",
+          "name": "src/test/java/utils/WaitUtils",
+          "filename": "src/test/java/utils/WaitUtils.java",
+          "zip_path": "src/test/java/utils/src/test/java/utils/WaitUtils.java",
+          "content": "```java\npackage utils;\n\nimport org.openqa.selenium.By;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.support.ui.ExpectedConditions;\nimport org.openqa.selenium.support.ui.WebDriverWait;\n\nimport java.time.Duration;\n\npublic class WaitUtils {\n    public static void waitForTextPresent(WebDriver driver, By locator, String text) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.textToBe(locator, text));\n    }\n\n    public static void waitForUrlContains(WebDriver driver, String fragment) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.urlContains(fragment));\n    }\n\n    public static void waitForAttributeContains(WebDriver driver, By locator, String attribute, String value) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.attributeContains(locator, attribute, value));\n    }\n\n    public static void waitForInvisibility(WebDriver driver, By locator) {\n        new WebDriverWait(driver, Duration.ofSeconds(20))\n                .until(ExpectedConditions.invisibilityOfElementLocated(locator));\n    }\n}\n```"
+        },
+        "src/test/java/utils/ScreenshotUtils": {
+          "utility_id": "dc840544-870d-4e90-b5e6-5e540a6dd6db",
+          "name": "src/test/java/utils/ScreenshotUtils",
+          "filename": "src/test/java/utils/ScreenshotUtils.java",
+          "zip_path": "src/test/java/utils/src/test/java/utils/ScreenshotUtils.java",
+          "content": "```java\npackage utils;\n\nimport org.openqa.selenium.OutputType;\nimport org.openqa.selenium.TakesScreenshot;\nimport org.openqa.selenium.WebDriver;\nimport org.openqa.selenium.io.FileHandler;\n\nimport java.io.File;\nimport java.io.IOException;\nimport java.text.SimpleDateFormat;\nimport java.util.Date;\n\npublic class ScreenshotUtils {\n    public static void captureScreenshot(WebDriver driver) {\n        File screenshot = ((TakesScreenshot) driver).getScreenshotAs(OutputType.FILE);\n        String timestamp = new SimpleDateFormat(\"yyyyMMddHHmmss\").format(new Date());\n        try {\n            FileHandler.copy(screenshot, new File(\"target/screenshots/\" + timestamp + \".png\"));\n        } catch (IOException e) {\n            e.printStackTrace();\n        }\n    }\n}\n```"
+        }
+      },
+      "framework": {
+        "project_id": "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88",
+        "selected_framework": "java",
+        "framework_details": {
+          "language": "Java",
+          "version": "21",
+          "build_tool": "Maven",
+          "test_framework": "TestNG",
+          "bdd_framework": "Cucumber",
+          "reporting": "Extent Reports",
+          "dependencies": [
+            "Selenium 4",
+            "Apache POI",
+            "Jackson"
+          ]
+        },
+        "status": "selected"
+      },
+      "quality_metrics": {
+        "overall_score": 75,
+        "gherkin_quality": 85,
+        "java_code_quality": 80,
+        "step_definition_coverage": 0,
+        "page_object_quality": 90,
+        "locator_quality": 100,
+        "framework_structure": 70,
+        "traceability": 100,
+        "assertion_quality": 0,
+        "maintainability": 80,
+        "automation_readiness": 60,
+        "requirement_coverage_pct": 600,
+        "duplicate_steps": [],
+        "missing_components": [
+          "Step Definitions"
+        ],
+        "improvement_suggestions": [
+          "Implement step definitions to improve step coverage.",
+          "Add assertions in step definitions to validate outcomes.",
+          "Create scenario outlines for parameterized tests.",
+          "Ensure all utility classes are implemented and utilized.",
+          "Review and optimize the framework structure for better organization."
+        ],
+        "critical_issues": [
+          "No step definitions implemented, leading to unexecutable scenarios."
+        ],
+        "summary": "The project is partially ready for automation but requires significant improvements in step definitions and assertions.",
+        "static_analysis": {
+          "gherkin": {
+            "total_feature_files": 1,
+            "total_scenarios": 18,
+            "scenario_outlines": 0,
+            "smoke_tagged": 14,
+            "regression_tagged": 0,
+            "req_traced_tags": 18,
+            "vague_then_steps": 0,
+            "has_background": true
+          },
+          "page_objects": {
+            "total_classes": 6,
+            "extends_base_page": 5,
+            "thread_sleep_usages": 0,
+            "brittle_absolute_xpath": 0,
+            "generic_div_xpath": 0,
+            "todo_comments": 0
+          },
+          "step_definitions": {
+            "total_classes": 0,
+            "total_step_patterns": 0,
+            "duplicate_steps": [],
+            "assert_calls": 0,
+            "then_steps_without_assert": 0
+          },
+          "utilities": {
+            "generated": [
+              "pom",
+              "src/test/resources/config",
+              "src/test/resources/cucumber",
+              "src/test/java/config/DriverFactory",
+              "src/test/java/config/ConfigReader",
+              "src/test/java/pages/BasePage",
+              "src/test/java/hooks/Hooks",
+              "src/test/java/runners/TestRunner",
+              "src/test/java/utils/WaitUtils",
+              "src/test/java/utils/ScreenshotUtils"
+            ],
+            "missing_core": [
+              "ConfigReader",
+              "BasePage",
+              "TestRunner",
+              "DriverFactory",
+              "Hooks"
+            ],
+            "has_pom_xml": true
+          }
+        }
+      },
+      "traceability_map": {
+        "Here is the structured list of functional requirements, business rules, and features extracted from the provided document": {
+          "requirement": "",
+          "test_cases": [],
+          "feature_files": [],
+          "page_objects": []
+        },
+        "Based on the provided document, here is the structured list of functional requirements, business rules, and features": {
+          "requirement": "",
+          "test_cases": [],
+          "feature_files": [],
+          "page_objects": []
+        }
+      },
+      "requirements": [
+        {
+          "requirement_id": "Here is the structured list of functional requirements, business rules, and features extracted from the provided document",
+          "feature": "",
+          "business_rules": [
+            "Users must register with a valid email address and a password of at least 8 characters.",
+            "The system must send a confirmation email with a link that expires in 24 hours.",
+            "**Business Rule:** The confirmation link is valid for 24 hours only.",
+            "Registered users can log in with their email and password.",
+            "Three failed attempts must lock the account for 15 minutes.",
+            "Successful login redirects to the dashboard.",
+            "**Business Rule:** Account lockout occurs after three failed login attempts.",
+            "Users can request a password-reset link via email.",
+            "The link must expire after 24 hours and can only be used once.",
+            "**Business Rule:** The password reset link is valid for one-time use only.",
+            "Authenticated users can log out at any time.",
+            "The session must be invalidated server-side immediately.",
+            "Display products with thumbnail, name, price, and rating.",
+            "Paginate at 12 items per page.",
+            "Support sorting by price and popularity.",
+            "Full-text search across product name and description.",
+            "Results must appear within 2 seconds.",
+            "Show 'No results found' for zero matches.",
+            "Each product page shows description, specifications, stock level, customer reviews (with ratings), and related products.",
+            "Authenticated users can add any in-stock product to their cart.",
+            "Cart persists across browser sessions via server-side storage.",
+            "Users can change item quantity (1\u201399) or remove items.",
+            "Cart total must update in real time.",
+            "Display subtotal, applicable taxes, estimated shipping, and grand total.",
+            "Users must provide a valid shipping address.",
+            "Previously saved addresses can be selected from a dropdown.",
+            "Support credit/debit card via Stripe.",
+            "Card details must never be stored on the platform's servers.",
+            "**Business Rule:** Payment processing must comply with PCI DSS standards.",
+            "After successful payment, show an order-confirmation page and send a confirmation email within 30 seconds.",
+            "**Performance:** Page load time < 3 seconds on a 4G connection.",
+            "**Security:** HTTPS only. OWASP Top-10 mitigations in place.",
+            "**Availability:** 99.9% uptime SLA.",
+            "**Accessibility:** WCAG 2.1 AA compliant."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        },
+        {
+          "requirement_id": "Based on the provided document, here is the structured list of functional requirements, business rules, and features",
+          "feature": "",
+          "business_rules": [
+            "User can register with a unique email and password.",
+            "**Business Rule 1:** Email must not already be registered.",
+            "**Business Rule 2:** A confirmation email is sent upon successful registration.",
+            "User cannot register with an email that is already in use.",
+            "**Business Rule 1:** An error message is displayed indicating the email is already registered.",
+            "**Business Rule 2:** User remains on the registration page without receiving a confirmation email.",
+            "User can log in with valid credentials (email and password).",
+            "**Business Rule 1:** User is redirected to the dashboard upon successful login.",
+            "**Business Rule 2:** A welcome message displays the user's name.",
+            "User cannot log in with an incorrect password.",
+            "**Business Rule 1:** An error message is displayed indicating invalid email or password.",
+            "**Business Rule 2:** Password field is cleared after a failed attempt.",
+            "User can search for products by name.",
+            "**Business Rule 1:** Search results must load within 2 seconds.",
+            "**Business Rule 2:** Results must contain at least one product matching the search term.",
+            "User can add products to their shopping cart.",
+            "**Business Rule 1:** A success notification is displayed upon adding an item.",
+            "**Business Rule 2:** The cart icon counter updates to reflect the new item count.",
+            "User can remove items from their shopping cart.",
+            "**Business Rule 1:** The cart total is recalculated immediately after removal.",
+            "**Business Rule 2:** If the cart is empty, a message is displayed indicating the cart is empty.",
+            "User can complete a purchase through the checkout process.",
+            "**Business Rule 1:** An order confirmation page is displayed with an order ID.",
+            "**Business Rule 2:** A confirmation email is sent within 30 seconds, and the cart is emptied.",
+            "User can reset their password if they forget it.",
+            "**Business Rule 1:** A success message is displayed upon successful password reset.",
+            "**Business Rule 2:** The old password must no longer work after reset.",
+            "User account is locked after three consecutive failed login attempts.",
+            "**Business Rule 1:** An account lockout message is displayed after the third failure.",
+            "**Business Rule 2:** The account unlocks automatically after 15 minutes."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        },
+        {
+          "requirement_id": "Here is the structured list of functional requirements, business rules, and features extracted from the provided document",
+          "feature": "",
+          "business_rules": [
+            "Business Rule: Registration successful response must return status as 'success' and send a confirmation email.",
+            "Business Rule: Duplicate email returns a 409 error with a message indicating the email already exists.",
+            "Business Rule: Valid login must return a status of 'success' and a valid JWT token.",
+            "Business Rule: Invalid credentials must show an error message and not grant access.",
+            "Business Rule: 3 failed login attempts must lock the account for 15 minutes.",
+            "Business Rule: Old password must be rejected, and the new password must be accepted on the next login.",
+            "Business Rule: Product search must return results in a timely manner.",
+            "Business Rule: Search must return relevant results or indicate 'No results found' if there are no matches.",
+            "Business Rule: Adding an item to the cart must return a valid cart ID and a positive subtotal.",
+            "Business Rule: Updating item quantity must recalculate the total correctly.",
+            "Business Rule: Items can be removed from the cart, and the cart must update accordingly.",
+            "Business Rule: Checkout must validate the shipping address before processing the order.",
+            "Business Rule: Payment processing must succeed with the specified test card.",
+            "Business Rule: Successful checkout must generate an order confirmation page and send a confirmation email."
+          ],
+          "workflows": [],
+          "validations": [],
+          "preconditions": [],
+          "dependencies": []
+        }
+      ]
+    }
   }
 }

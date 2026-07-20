@@ -178,6 +178,16 @@ class ProjectKnowledgeModel:
             doc_type_filter="expected_output",
         )
 
+    def retrieve_for_context(self, items: list, field: str = "scenario", top_k: int = 5) -> str:
+        """Build a targeted query from a list of test cases or requirements and retrieve relevant chunks."""
+        if not items:
+            return ""
+        sample_texts = " ".join(
+            str(item.get(field, "") or item.get("feature", "") or item.get("description", ""))
+            for item in items[:6]
+        )
+        return self.retrieve(sample_texts, top_k=top_k)
+
     # ------------------------------------------------------------------
     # Traceability
     # ------------------------------------------------------------------

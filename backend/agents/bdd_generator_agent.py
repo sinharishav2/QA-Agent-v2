@@ -4,11 +4,24 @@ import uuid
 import re
 from utils.openai_client import openai_client
 
-SYSTEM_PROMPT = """You are an expert Senior QA Automation Architect with 15+ years of experience designing enterprise Selenium automation frameworks.
-Your ONLY responsibility is to generate production-ready Cucumber .feature files.
-Generate VALID Gherkin syntax only. No JSON, no YAML, no explanations.
-Use Given/When/Then structure. Include meaningful scenario names. Include Background if applicable.
-Never use Thread.sleep(). Never output JSON inside .feature files."""
+SYSTEM_PROMPT = """You are a Principal QA Automation Engineer at a top-tier software company specialising in enterprise BDD frameworks.
+Generate production-ready Cucumber .feature files that are immediately executable with minimal manual edits.
+
+STRICT GHERKIN RULES:
+1. Feature title = business capability (not technical phrase)
+2. Every Scenario title is unique and matches the source test case name
+3. Tag every Scenario: @<priority-tag> @<module-tag> @req-<REQ-ID> (use @smoke for High priority, @regression for Medium/Low)
+4. Use Background: block for shared preconditions across scenarios in the same Feature
+5. Use Scenario Outline + Examples: for data-driven tests with 2+ data sets
+6. Given = system state, When = user action, Then = verifiable observable outcome
+7. Then steps MUST reference exact expected values from the Expected Output section when provided
+   Example: Then the HTTP response status should be 201
+            And the success message should be "Registration successful. Please check your email."
+8. Avoid vague Then steps like "the user sees a message" – be specific
+9. Each step line must be a single, atomic action or assertion
+10. Add @negative tag to all negative / error scenarios
+11. Never output JSON, YAML, or Java inside .feature files
+12. Return ONLY valid Gherkin – no prose, no markdown fences"""
 
 
 class BDDGeneratorAgent(BaseAgent):
@@ -43,23 +56,34 @@ class BDDGeneratorAgent(BaseAgent):
 
     def _generate_feature_files(self, test_cases: List[Dict[str, Any]], document_content: str) -> List[Dict[str, Any]]:
         test_cases_text = self._format_test_cases(test_cases)
+        modules = sorted(set(tc.get('module', 'General') for tc in test_cases if tc.get('module')))
 
-        user_prompt = f"""Generate Cucumber .feature files based on the following test cases extracted from the uploaded documents.
+        user_prompt = f"""Generate one Cucumber .feature file per module. Group test cases by their Module field.
 
-Document Content:
-{document_content[:3000]}
+Modules identified: {', '.join(modules) if modules else 'Authentication, Core'}
 
-Test Cases:
+CONTEXT (Requirements + Expected Outputs):
+{document_content[:4000]}
+
+TEST CASES TO CONVERT:
 {test_cases_text}
 
-Return each feature file using this exact format:
-=== FILE: FeatureName.feature ===
-[feature file content]
+INSTRUCTIONS:
+- One .feature file per module (e.g. Authentication.feature, ShoppingCart.feature)
+- Group Scenarios from the same module into the same Feature file
+- Carry @req-<REQ-ID> tags from the test cases where available
+- Use Scenario Outline + Examples for any test case that tests multiple data inputs
+- Extract exact error messages and HTTP codes from the Context section for Then steps
+- Add Background: block if 2+ scenarios in a Feature share the same Given step
 
-Generate complete, executable Cucumber feature files with proper Gherkin syntax."""
+Return each file using this EXACT delimiter (no deviation):
+=== FILE: ModuleName.feature ===
+[complete feature file content]
+
+Generate all feature files now."""
 
         self.logger.info("Calling LLM to generate feature files...")
-        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
 
         if response:
             self.logger.info(f"LLM returned {len(response)} chars for feature files")
@@ -71,11 +95,18 @@ Generate complete, executable Cucumber feature files with proper Gherkin syntax.
     def _format_test_cases(self, test_cases: List[Dict[str, Any]]) -> str:
         lines = []
         for tc in test_cases:
-            lines.append(f"Test ID: {tc.get('test_id', 'TC-001')}")
-            lines.append(f"Scenario: {tc.get('scenario', '')}")
-            lines.append(f"Preconditions: {', '.join(tc.get('preconditions', []))}")
-            lines.append(f"Steps: {', '.join(tc.get('steps', []))}")
-            lines.append(f"Expected: {', '.join(tc.get('expected_results', []))}")
+            lines.append(f"--- Test ID: {tc.get('test_id', 'TC-?')} | Priority: {tc.get('priority','Medium')} | Module: {tc.get('module','General')} ---")
+            lines.append(f"Scenario Title : {tc.get('scenario', tc.get('title', '(untitled)'))!s}")
+            preconditions = tc.get('preconditions', [])
+            if preconditions:
+                lines.append(f"Preconditions  : {'; '.join(preconditions)}")
+            for i, step in enumerate(tc.get('steps', []), 1):
+                lines.append(f"  Step {i}: {step}")
+            expected = tc.get('expected_results', tc.get('expected', []))
+            if expected:
+                lines.append(f"Expected Results:")
+                for exp in (expected if isinstance(expected, list) else [expected]):
+                    lines.append(f"  - {exp}")
             lines.append("")
         return "\n".join(lines)
 

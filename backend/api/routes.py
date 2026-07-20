@@ -307,13 +307,24 @@ async def download_generated_files(project_id: str):
             if test_cases:
                 zip_file.writestr("test_cases.json", json.dumps(test_cases, indent=2))
 
-            # Framework utility files (DriverFactory, ConfigReader, Hooks, etc.)
+            # Framework utility files — use zip_path if provided for correct folder placement
             utilities = artifacts.get('utilities', {})
             if isinstance(utilities, dict):
                 for util_name, util_data in utilities.items():
                     if isinstance(util_data, dict) and util_data.get('content'):
                         filename = util_data.get('filename', f'{util_name}.java')
-                        zip_file.writestr(f"src/test/java/utils/{filename}", util_data['content'])
+                        zip_path = util_data.get('zip_path')
+                        if zip_path:
+                            dest = zip_path
+                        else:
+                            ext = filename.rsplit('.', 1)[-1] if '.' in filename else 'java'
+                            if ext == 'xml' and filename == 'pom.xml':
+                                dest = filename
+                            elif ext in ('properties', 'xml'):
+                                dest = f"src/test/resources/{filename}"
+                            else:
+                                dest = f"src/test/java/utils/{filename}"
+                        zip_file.writestr(dest, util_data['content'])
 
             # Quality metrics
             quality_metrics = artifacts.get('quality_metrics', {})

@@ -4,18 +4,24 @@ import uuid
 import re
 from utils.openai_client import openai_client
 
-SYSTEM_PROMPT = """You are an expert Senior QA Automation Architect with 15+ years of experience designing enterprise Selenium automation frameworks.
-Your ONLY responsibility is to generate production-ready Java Cucumber Step Definition classes.
-Rules:
-- package stepdefinitions;
-- Use @Given, @When, @Then from io.cucumber.java.en
-- Use parameterized steps: {string}, {int}
-- Reference page objects for all interactions
-- Use Assert from org.junit.Assert for assertions
-- Use WebDriverWait, never Thread.sleep()
-- No duplicate step definitions
-- No placeholder implementations - every method must have real code
-- Every file must compile"""
+SYSTEM_PROMPT = """You are a Principal SDET specialising in Java Cucumber BDD step definitions.
+Generate production-ready Step Definition classes from Gherkin feature files.
+
+MANDATORY CODING STANDARDS:
+1. package stepdefinitions;
+2. Imports: io.cucumber.java.en.Given/When/Then, org.junit.Assert, and every Page class used
+3. Step regex pattern must EXACTLY match the Gherkin step text (case-insensitive string match)
+4. Parameterise steps with {string} for quoted values and {int} for numeric values
+5. NEVER duplicate a step definition — if two scenarios share a step, use one method
+6. Instantiate Page Objects via the shared ScenarioContext or a PicoContainer-style constructor
+7. For Then/And assertion steps: use Assert.assertEquals(expected, actual) with a descriptive failure message
+   Example: Assert.assertEquals(\"Expected success message\", \"Registration successful. Please check your email.\", actualMsg);
+8. For Then steps that check HTTP status or API response: use assertEquals with the exact value from Expected Output
+9. Use WebDriverWait from BasePage — never Thread.sleep()
+10. Organise step defs by feature: one class per Feature file (AuthenticationSteps, CartSteps, etc.)
+11. All fields initialised in the constructor or @Before hook — no static state
+12. Every method must have real code, no TODOs, no placeholders
+13. Return ONLY Java source code, no prose, no markdown fences"""
 
 
 class StepDefinitionAgent(BaseAgent):
@@ -50,32 +56,36 @@ class StepDefinitionAgent(BaseAgent):
 
     def _generate_step_definitions(self, feature_files: List[Dict[str, Any]], page_objects: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         feature_content = "\n\n".join([
-            f"Feature: {f.get('feature_name','')}\n{f.get('content','')}"
+            f"=== {f.get('filename', f.get('feature_name',''))} ===\n{f.get('content','')}"
             for f in feature_files
         ])
-        page_object_names = [p.get('class_name') or p.get('page_name', '') for p in page_objects]
+        page_api = self._extract_page_api(page_objects)
 
-        user_prompt = f"""Generate Java Cucumber Step Definition classes for the following feature files.
+        user_prompt = f"""Generate Java Cucumber Step Definition classes for the feature files below.
 
-Feature Files:
-{feature_content[:3000]}
+FEATURE FILES (map every step to a @Given/@When/@Then method):
+{feature_content[:4500]}
 
-Available Page Objects:
-{', '.join(page_object_names)}
+AVAILABLE PAGE OBJECT API (use ONLY these methods — do not invent new ones):
+{page_api}
 
-Requirements:
-- package stepdefinitions;
-- Import and instantiate each page object
-- Implement every step from every feature file
-- Use Assert.assertEquals / Assert.assertTrue for validations
-- Use parameterized steps where applicable
+INSTRUCTIONS:
+- Create one Step Definition class per Feature file
+  (AuthenticationSteps.java, ShoppingCartSteps.java, etc.)
+- The class must hold page object instances and a WebDriver field
+- Initialise WebDriver and all page objects in the constructor
+- Every Gherkin step must have exactly one corresponding @Given/@When/@Then method
+- Match the step annotation text EXACTLY to the Gherkin step (excluding leading keyword)
+- Use parameterised {string}/{int} where the Gherkin step uses double-quoted values or numbers
+- Then-step assertions must use Assert.assertEquals(\"message\", expected, actual)
+- Use the exact assertion values already embedded in the Gherkin Then steps
 
-Return each Java class using this exact format:
+Return each file using this EXACT delimiter:
 === FILE: ClassName.java ===
-[complete Java class content]"""
+[complete compilable Java class]"""
 
         self.logger.info("Calling LLM to generate step definitions...")
-        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
 
         if response:
             self.logger.info(f"LLM returned {len(response)} chars for step definitions")
@@ -83,6 +93,24 @@ Return each Java class using this exact format:
         else:
             self.logger.warning("LLM returned no response for step definitions")
             return []
+
+    def _extract_page_api(self, page_objects: List[Dict[str, Any]]) -> str:
+        """Extract public method signatures from generated page object classes."""
+        lines = []
+        sig_pattern = re.compile(
+            r'^\s*public\s+(?!class|interface|enum|static\s+class)'
+            r'(?:[A-Za-z][\w<>\[\],\s]*)\s+([a-z][\w]*)\s*\([^)]*\)',
+            re.MULTILINE
+        )
+        for po in page_objects:
+            name = po.get('class_name') or po.get('page_name', 'UnknownPage')
+            content = po.get('content', '')
+            methods = sorted(set(sig_pattern.findall(content)))
+            if methods:
+                lines.append(f"{name}: {', '.join(methods)}")
+            else:
+                lines.append(f"{name}: (see generated class for available methods)")
+        return "\n".join(lines) if lines else "(no page objects available)"
 
     def _parse_java_files(self, response: str) -> List[Dict[str, Any]]:
         files = []

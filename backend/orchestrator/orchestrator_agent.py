@@ -38,19 +38,25 @@ class OrchestratorAgent:
             except Exception as pkm_exc:
                 self.logger.warning(f"PKM ingestion failed (non-fatal): {pkm_exc}")
 
-            # Step 3: Build base document content + PKM-enriched contexts
+            # Step 3: Build base document content
             document_content = self._extract_combined_content(parsed_documents)
             expected_output_context = pkm.get_expected_output_context()
 
-            bdd_context = self._build_agent_context(document_content, pkm.get_context_for_agent('bdd'), expected_output_context)
-            po_context = self._build_agent_context(document_content, pkm.get_context_for_agent('page_object'), "")
-            step_context = self._build_agent_context(document_content, pkm.get_context_for_agent('step_definition'), expected_output_context)
-
-            # Step 4: Extraction pipeline
+            # Step 4: Extraction pipeline (before building per-agent PKM context)
             requirements = self._execute_requirement_extraction(workflow_id, parsed_documents)
             test_cases = self._execute_test_case_extraction(workflow_id, parsed_documents)
+
+            # Step 3b: Build targeted PKM contexts using extracted data
+            bdd_pkm = pkm.retrieve_for_context(test_cases, field="scenario") or pkm.get_context_for_agent('bdd')
+            po_pkm  = pkm.retrieve_for_context(requirements, field="feature") or pkm.get_context_for_agent('page_object')
+            step_pkm = pkm.get_context_for_agent('step_definition')
+
+            bdd_context  = self._build_agent_context(document_content, bdd_pkm, expected_output_context)
+            po_context   = self._build_agent_context(document_content, po_pkm, "")
+            step_context = self._build_agent_context(document_content, step_pkm, expected_output_context)
+
             test_designs = self._execute_test_design(workflow_id, test_cases)
-            test_data = self._execute_test_data_generation(workflow_id, test_cases)
+            test_data    = self._execute_test_data_generation(workflow_id, test_cases)
 
             # Step 5: Framework + code generation (with enriched context)
             framework = self._execute_framework_selection(workflow_id, project_id)

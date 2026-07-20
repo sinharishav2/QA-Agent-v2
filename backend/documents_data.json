@@ -570,5 +570,31 @@
       "file_path": "./uploads\\bcbabcca-18b3-440e-8bcf-f365d7a70a68_expected_output.xlsx",
       "upload_timestamp": "2026-07-20T10:23:27.731973"
     }
+  ],
+  "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88": [
+    {
+      "document_id": "c05f2aa7-7a8e-47f7-94aa-6135d077eba8",
+      "project_id": "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88",
+      "document_type": "functional_specification",
+      "filename": "functional_specification.docx",
+      "file_path": "./uploads\\cbe6efd7-ca1a-4cfb-a91e-a01f170372b9_functional_specification.docx",
+      "upload_timestamp": "2026-07-20T11:12:53.118067"
+    },
+    {
+      "document_id": "db9869dc-c17f-4e45-95ae-0bab52729441",
+      "project_id": "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88",
+      "document_type": "test_cases",
+      "filename": "manual_test_cases.docx",
+      "file_path": "./uploads\\df387f9c-bb9f-4819-a0fb-3cbd12856b18_manual_test_cases.docx",
+      "upload_timestamp": "2026-07-20T11:12:59.272011"
+    },
+    {
+      "document_id": "c96d7a4d-46bc-4e12-8e4c-1b4dbc418600",
+      "project_id": "ccb74d2a-8aa3-47fb-9103-c9a03ff5bd88",
+      "document_type": "expected_output",
+      "filename": "expected_output.xlsx",
+      "file_path": "./uploads\\c9ccd9df-269d-4dbd-8ae7-23e8de2a3943_expected_output.xlsx",
+      "upload_timestamp": "2026-07-20T11:13:03.286895"
+    }
   ]
 }
