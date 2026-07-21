@@ -10,8 +10,38 @@ SYSTEM_PROMPT = (
     "You are a Principal QA Automation Architect and code auditor. "
     "You receive a static analysis report and code samples from a generated Java Selenium + Cucumber project. "
     "Evaluate automation readiness and return a JSON quality scorecard. "
+    "SCORING CALIBRATION: 90-100 = production-ready, follows all best practices, no critical issues; "
+    "75-89 = good quality, minor improvements needed; "
+    "60-74 = acceptable, several improvements required; "
+    "below 60 = significant issues, major rework needed. "
+    "Score objectively based on the actual static findings — do NOT apply blanket conservatism. "
     "Return ONLY a valid JSON object — no markdown, no explanation, no code fences."
 )
+
+_SCORE_WEIGHTS: Dict[str, float] = {
+    'step_definition_coverage': 0.20,
+    'gherkin_quality':          0.15,
+    'page_object_quality':      0.15,
+    'java_code_quality':        0.15,
+    'framework_structure':      0.15,
+    'assertion_quality':        0.10,
+    'traceability':             0.05,
+    'maintainability':          0.05,
+}
+
+
+def _compute_weighted_score(scores: Dict[str, Any]) -> int:
+    """Compute overall score as a weighted average of dimension scores."""
+    total = sum(
+        float(scores.get(k, 70)) * w
+        for k, w in _SCORE_WEIGHTS.items()
+        if isinstance(scores.get(k, 70), (int, float))
+    )
+    weight_sum = sum(
+        w for k, w in _SCORE_WEIGHTS.items()
+        if isinstance(scores.get(k, 70), (int, float))
+    )
+    return round(total / weight_sum) if weight_sum > 0 else 70
 
 
 class GeneratedTestScriptValidatorAgent(BaseAgent):
@@ -93,7 +123,11 @@ class GeneratedTestScriptValidatorAgent(BaseAgent):
         all_step_text  = "\n".join(s.get("content", "") for s in step_definitions)
         step_patterns  = re.findall(r'@(?:Given|When|Then)\s*\("([^"]+)"\)', all_step_text)
         dup_steps      = [p for p, c in Counter(step_patterns).items() if c > 1]
-        assert_calls   = len(re.findall(r"Assert\.", all_step_text))
+        assert_calls   = len(re.findall(
+            r'(?:Assert\.|assertThat\b|assertEquals\b|assertNotNull\b|assertNull\b|'
+            r'assertTrue\b|assertFalse\b|assertContains\b|assertThrows\b)',
+            all_step_text
+        ))
         no_assert_then = len(re.findall(r'@Then\s*\("', all_step_text)) - assert_calls
 
         report["step_definitions"] = {
@@ -188,6 +222,8 @@ Return ONLY this JSON object (all fields required, no extra text):
                 if match:
                     result = json.loads(match.group())
                     result.setdefault("static_analysis", static_report)
+                    # Override LLM's overall_score with deterministic weighted average
+                    result["overall_score"] = _compute_weighted_score(result)
                     return result
             except Exception as exc:
                 self.logger.warning(f"Could not parse LLM validation response: {exc}")

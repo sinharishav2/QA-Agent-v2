@@ -87,6 +87,7 @@ class OrchestratorAgent:
                 "parsed_documents": parsed_documents,
                 "requirements": requirements,
                 "test_cases": test_cases,
+                "manual_test_cases_count": getattr(self, '_manual_test_cases_count', len(test_cases)),
                 "test_designs": test_designs,
                 "test_data": test_data,
                 "framework": framework,
@@ -174,6 +175,7 @@ class OrchestratorAgent:
     def _execute_test_case_extraction(self, workflow_id: str, parsed_documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing test case extraction for workflow {workflow_id}")
         test_cases = []
+        manual_count = 0  # test cases from the 'test_cases' document only
 
         for doc in parsed_documents:
             try:
@@ -185,14 +187,17 @@ class OrchestratorAgent:
                     }
                     result = agent.execute(input_data)
                     extracted = result.get('test_cases', [])
-                    self.logger.info(f"Extracted {len(extracted)} test cases from document")
+                    self.logger.info(f"Extracted {len(extracted)} test cases from document type: {doc.get('document_type')}")
                     test_cases.extend(extracted)
+                    if doc.get('document_type') == 'test_cases':
+                        manual_count = len(extracted)  # only count manual test cases
                     self._log_step(workflow_id, "TestCaseExtraction", "success", result)
             except Exception as e:
                 self.logger.error(f"Test case extraction failed: {str(e)}", exc_info=True)
                 self._log_step(workflow_id, "TestCaseExtraction", "failed", {"error": str(e)})
 
-        self.logger.info(f"Total test cases after extraction: {len(test_cases)}")
+        self._manual_test_cases_count = manual_count if manual_count > 0 else len(test_cases)
+        self.logger.info(f"Total test cases: {len(test_cases)}, Manual (test_cases doc): {self._manual_test_cases_count}")
         return test_cases
 
     def _execute_test_design(self, workflow_id: str, test_cases: List[Dict[str, Any]]) -> Dict[str, Any]:

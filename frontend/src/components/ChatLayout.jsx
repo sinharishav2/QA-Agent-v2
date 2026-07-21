@@ -311,13 +311,19 @@ export default function ChatLayout({
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Test Cases</p>
+                  <p className="text-gray-400">Test Cases Parsed</p>
                   <p className="text-blue-400 font-medium">
-                    {generationStats ? `${generationStats.total_test_cases} Total` : '—'}
+                    {generationStats ? (generationStats.total_parsed_test_cases ?? generationStats.total_test_cases) : '—'}
                   </p>
                 </div>
                 {generationStats && (
                   <>
+                    {(generationStats.total_generated_test_scripts ?? 0) > 0 && (
+                      <div>
+                        <p className="text-gray-400">Generated Test Scripts</p>
+                        <p className="text-blue-400 font-medium">{generationStats.total_generated_test_scripts}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-gray-400">Feature Files</p>
                       <p className="text-blue-400 font-medium">{generationStats.total_features}</p>
@@ -346,6 +352,16 @@ export default function ChatLayout({
                   className="w-full text-left px-3 py-2 bg-green-700 hover:bg-green-600 rounded text-sm text-white transition-colors font-medium flex items-center gap-2"
                 >
                   <Download size={14} /> 📦 Download All Files (ZIP)
+                </button>
+                <button
+                  onClick={() => {
+                    if (!currentProjectId) { alert('Please generate code first'); return; }
+                    if (!generationStats) { alert('Please generate code first'); return; }
+                    window.open(`http://localhost:8000/api/projects/${currentProjectId}/report`, '_blank')
+                  }}
+                  className="w-full text-left px-3 py-2 bg-blue-700 hover:bg-blue-600 rounded text-sm text-white transition-colors font-medium flex items-center gap-2"
+                >
+                  <FileText size={14} /> 📄 Download Report (HTML)
                 </button>
               </div>
             </div>

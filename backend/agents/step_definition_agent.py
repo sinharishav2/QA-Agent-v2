@@ -115,6 +115,11 @@ Return ONLY:
                     "filename": f"{class_name}.java",
                     "content": response.strip()
                 }]
+            else:
+                # Force the expected class name — prevents misnamed fallbacks causing ZIP duplicates
+                parsed[0]['filename'] = f"{class_name}.java"
+                parsed[0]['name']     = class_name
+                parsed = parsed[:1]  # one class per feature file
             return parsed
         self.logger.warning(f"No LLM response for {feature_name} step definitions")
         return []

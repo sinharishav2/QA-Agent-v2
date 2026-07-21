@@ -141,7 +141,7 @@ export default function ChatPage() {
         const scoreText = qScore != null ? `\n🏆 Quality Score: ${qScore}/100` : ''
         const successMsg = {
           id: messages.length + 2,
-          text: `✅ Code generation complete!\n\n📊 Generation Summary:\n• Requirements Parsed: ${data.total_requirements || '—'}\n• Test Cases Parsed: ${data.total_test_cases}\n• Expected Outputs Parsed: ${data.total_expected_outputs || '—'}\n• Feature Files: ${data.total_features}\n• Page Objects: ${data.total_pages}\n• Step Definitions: ${data.total_step_definitions || '—'}\n• Utilities: ${data.total_utilities || '—'}\n\n🔧 Framework: ${data.framework?.selected_framework || 'Java/Selenium'}${scoreText}\n\n⬇️ Click "Download All Files (ZIP)" in the right panel.`,
+          text: `✅ Code generation complete!\n\n📊 Generation Summary:\n• Requirements Parsed: ${data.total_requirements || '—'}\n• Test Cases Parsed: ${data.total_parsed_test_cases ?? data.total_test_cases}\n• Generated Test Scripts: ${data.total_generated_test_scripts ?? '—'}\n• Expected Output Files: ${data.total_expected_outputs || '—'}\n• Feature Files: ${data.total_features}\n• Page Objects: ${data.total_pages}\n• Step Definitions: ${data.total_step_definitions || '—'}\n• Utilities: ${data.total_utilities || '—'}\n\n🔧 Framework: ${data.framework?.selected_framework || 'Java/Selenium'}${scoreText}\n\n⬇️ Use the right panel to download the ZIP or the HTML quality report.`,
           isUser: false,
         }
         setMessages((prev) => [...prev.slice(0, -1), successMsg])
