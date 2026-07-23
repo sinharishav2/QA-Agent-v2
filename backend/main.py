@@ -33,6 +33,7 @@ from agents.page_object_agent import PageObjectAgent
 from agents.step_definition_agent import StepDefinitionAgent
 from agents.locator_intelligence_agent import LocatorIntelligenceAgent
 from agents.utility_generator_agent import UtilityGeneratorAgent
+from agents.generated_test_script_validator_agent import GeneratedTestScriptValidatorAgent
 from orchestrator.orchestrator_agent import OrchestratorAgent
 
 app = FastAPI(
@@ -73,6 +74,7 @@ page_object_agent = PageObjectAgent()
 step_definition_agent = StepDefinitionAgent()
 locator_intelligence_agent = LocatorIntelligenceAgent()
 utility_generator_agent = UtilityGeneratorAgent()
+generated_test_script_validator_agent = GeneratedTestScriptValidatorAgent()
 
 orchestrator.register_agent("DocumentIngestionAgent", document_ingestion_agent)
 orchestrator.register_agent("DocumentParserAgent", document_parser_agent)
@@ -86,6 +88,7 @@ orchestrator.register_agent("PageObjectAgent", page_object_agent)
 orchestrator.register_agent("StepDefinitionAgent", step_definition_agent)
 orchestrator.register_agent("LocatorIntelligenceAgent", locator_intelligence_agent)
 orchestrator.register_agent("UtilityGeneratorAgent", utility_generator_agent)
+orchestrator.register_agent("GeneratedTestScriptValidatorAgent", generated_test_script_validator_agent)
 
 # Inject the configured orchestrator into routes
 set_orchestrator(orchestrator)

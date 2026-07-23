@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, PlayCircle, FileText } from 'lucide-react'
+import { MessageCircle, Download, Settings, Trash2, Plus, X, AlertTriangle, RefreshCw, FileText, Clock, Star } from 'lucide-react'
 
 export default function ChatLayout({ 
   children, 
@@ -13,19 +13,14 @@ export default function ChatLayout({
   onInputChange,
   onSendMessage,
   generationStats,
-  onDeleteProject
+  onDeleteProject,
+  savedRuns
 }) {
-  const [conversations, setConversations] = useState([
-    { id: 1, name: 'Project Alpha - QA Setup', date: 'Today' },
-    { id: 2, name: 'E-commerce Testing', date: 'Yesterday' },
-    { id: 3, name: 'API Automation', date: '2 days ago' },
-    { id: 4, name: 'Mobile App Testing', date: '1 week ago' },
-  ])
-  const [activeConversation, setActiveConversation] = useState(1)
+  const [conversations, setConversations] = useState([])
+  const [activeConversation, setActiveConversation] = useState(null)
   const [showRightPanel, setShowRightPanel] = useState(true)
   const [showNewConvModal, setShowNewConvModal] = useState(false)
   const [newConvName, setNewConvName] = useState('')
-  const [showRunTestsModal, setShowRunTestsModal] = useState(false)
   const [showViewLogsModal, setShowViewLogsModal] = useState(false)
   const [showSettingsModal, setShowSettingsModal] = useState(false)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
@@ -61,7 +56,7 @@ export default function ChatLayout({
         setShowNewConvModal(false)
         
         if (onNewConversation) {
-          onNewConversation(data.project_id)
+          onNewConversation(data.project_id, newConvName)
         }
       } else {
         alert('Failed to create project')
@@ -89,25 +84,78 @@ export default function ChatLayout({
 
         {/* Conversations List */}
         <div className="flex-1 overflow-y-auto">
-          {conversations.map((conv) => (
-            <div
-              key={conv.id}
-              onClick={() => setActiveConversation(conv.id)}
-              className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${
-                activeConversation === conv.id
-                  ? 'bg-blue-900 bg-opacity-30 border-l-4 border-l-blue-500'
-                  : 'hover:bg-gray-800'
-              }`}
-            >
-              <div className="flex items-start gap-3">
-                <MessageCircle size={18} className="text-blue-400 mt-1 flex-shrink-0" />
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium text-gray-100 truncate">{conv.name}</p>
-                  <p className="text-xs text-gray-500 mt-1">{conv.date}</p>
+          {/* Current session */}
+          {conversations.length > 0 && (
+            <div>
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wider">Current Session</p>
+              {conversations.map((conv) => (
+                <div
+                  key={conv.id}
+                  onClick={() => setActiveConversation(conv.id)}
+                  className={`p-4 border-b border-gray-800 cursor-pointer transition-colors ${
+                    activeConversation === conv.id
+                      ? 'bg-blue-900 bg-opacity-30 border-l-4 border-l-blue-500'
+                      : 'hover:bg-gray-800'
+                  }`}
+                >
+                  <div className="flex items-start gap-3">
+                    <MessageCircle size={18} className="text-blue-400 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium text-gray-100 truncate">{conv.name}</p>
+                      <p className="text-xs text-gray-500 mt-1">{conv.date}</p>
+                    </div>
+                  </div>
                 </div>
-              </div>
+              ))}
             </div>
-          ))}
+          )}
+
+          {/* Run History from localStorage */}
+          {savedRuns && savedRuns.length > 0 && (
+            <div>
+              <p className="px-4 pt-3 pb-1 text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-1">
+                <Clock size={11} /> Run History
+              </p>
+              {savedRuns.map((run) => (
+                <div
+                  key={run.id}
+                  className="p-3 border-b border-gray-800 hover:bg-gray-800 transition-colors group"
+                >
+                  <div className="flex items-start gap-2">
+                    <Star size={14} className="text-yellow-500 mt-1 flex-shrink-0" />
+                    <div className="flex-1 min-w-0">
+                      <p className="text-xs font-medium text-gray-200 truncate">{run.name}</p>
+                      <p className="text-xs text-gray-500 mt-0.5">{new Date(run.timestamp).toLocaleString()}</p>
+                      {run.stats && (
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          {run.stats.total_features}feat · {run.stats.total_pages}po
+                          {run.stats.validation_score ? ` · ${run.stats.validation_score}/100` : ''}
+                        </p>
+                      )}
+                    </div>
+                    <a
+                      href={`http://localhost:8000/api/projects/${run.projectId}/download`}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="opacity-0 group-hover:opacity-100 transition-opacity p-1 rounded hover:bg-gray-700 text-green-400"
+                      title="Download ZIP"
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      <Download size={14} />
+                    </a>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* Empty state */}
+          {conversations.length === 0 && (!savedRuns || savedRuns.length === 0) && (
+            <div className="p-6 text-center">
+              <MessageCircle size={32} className="mx-auto text-gray-700 mb-2" />
+              <p className="text-xs text-gray-600">No projects yet.<br/>Click "New Conversation" to start.</p>
+            </div>
+          )}
         </div>
 
         {/* Settings */}
@@ -215,7 +263,7 @@ export default function ChatLayout({
                   <label className="block">
                     <input
                       type="file"
-                      accept=".txt,.docx,.pdf"
+                      accept=".txt,.docx,.pdf,.xlsx,.xls"
                       onChange={(e) => e.target.files?.[0] && onFileUpload(e.target.files[0], 'expected_output')}
                       className="hidden"
                     />
@@ -263,13 +311,19 @@ export default function ChatLayout({
                   </p>
                 </div>
                 <div>
-                  <p className="text-gray-400">Test Cases</p>
+                  <p className="text-gray-400">Test Cases Parsed</p>
                   <p className="text-blue-400 font-medium">
-                    {generationStats ? `${generationStats.total_test_cases} Total` : '—'}
+                    {generationStats ? (generationStats.total_parsed_test_cases ?? generationStats.total_test_cases) : '—'}
                   </p>
                 </div>
                 {generationStats && (
                   <>
+                    {(generationStats.total_generated_test_scripts ?? 0) > 0 && (
+                      <div>
+                        <p className="text-gray-400">Generated Test Scripts</p>
+                        <p className="text-blue-400 font-medium">{generationStats.total_generated_test_scripts}</p>
+                      </div>
+                    )}
                     <div>
                       <p className="text-gray-400">Feature Files</p>
                       <p className="text-blue-400 font-medium">{generationStats.total_features}</p>
@@ -299,6 +353,16 @@ export default function ChatLayout({
                 >
                   <Download size={14} /> 📦 Download All Files (ZIP)
                 </button>
+                <button
+                  onClick={() => {
+                    if (!currentProjectId) { alert('Please generate code first'); return; }
+                    if (!generationStats) { alert('Please generate code first'); return; }
+                    window.open(`http://localhost:8000/api/projects/${currentProjectId}/report`, '_blank')
+                  }}
+                  className="w-full text-left px-3 py-2 bg-blue-700 hover:bg-blue-600 rounded text-sm text-white transition-colors font-medium flex items-center gap-2"
+                >
+                  <FileText size={14} /> 📄 Download Report (HTML)
+                </button>
               </div>
             </div>
 
@@ -306,12 +370,6 @@ export default function ChatLayout({
             <div className="bg-gray-800 rounded-lg p-4">
               <h3 className="text-sm font-semibold text-gray-200 mb-3">Actions</h3>
               <div className="space-y-2">
-                <button
-                  onClick={() => setShowRunTestsModal(true)}
-                  className="w-full text-left px-3 py-2 bg-blue-600 hover:bg-blue-700 rounded text-sm text-white transition-colors font-medium flex items-center gap-2"
-                >
-                  <PlayCircle size={14} /> ▶️ Run Tests
-                </button>
                 <button
                   onClick={onGenerateCode}
                   disabled={isGenerating || !currentProjectId}
@@ -403,46 +461,6 @@ export default function ChatLayout({
               <button onClick={handleCreateConversation} className="flex-1 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded-lg transition-colors font-medium">Create</button>
               <button onClick={() => { setShowNewConvModal(false); setNewConvName('') }} className="flex-1 bg-gray-700 hover:bg-gray-600 text-white py-2 px-4 rounded-lg transition-colors">Cancel</button>
             </div>
-          </div>
-        </div>
-      )}
-
-      {/* Run Tests Modal */}
-      {showRunTestsModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-gray-950 border border-gray-800 rounded-lg p-6 w-[500px] max-h-[80vh] overflow-y-auto">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-xl font-bold text-white flex items-center gap-2"><PlayCircle size={20} className="text-blue-400" /> Run Tests</h2>
-              <button onClick={() => setShowRunTestsModal(false)} className="text-gray-400 hover:text-white"><X size={20} /></button>
-            </div>
-            <div className="space-y-4 text-sm text-gray-300">
-              <p>To run the generated Java Selenium + Cucumber tests, follow these steps:</p>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">1. Download the generated files:</p>
-                <p className="text-gray-400">Click "Download All Files (ZIP)" and extract to your workspace.</p>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">2. Prerequisites:</p>
-                <ul className="list-disc list-inside space-y-1 text-gray-400">
-                  <li>Java JDK 11+</li>
-                  <li>Maven 3.6+</li>
-                  <li>Chrome browser + ChromeDriver on PATH</li>
-                </ul>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">3. Run all tests:</p>
-                <pre className="bg-gray-800 rounded p-3 text-green-400 text-xs">{`cd your-project-folder\nmvn clean test`}</pre>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">4. Run by tag:</p>
-                <pre className="bg-gray-800 rounded p-3 text-green-400 text-xs">{`mvn test -Dcucumber.filter.tags="@smoke"`}</pre>
-              </div>
-              <div>
-                <p className="text-gray-200 font-semibold mb-1">5. Reports:</p>
-                <p className="text-gray-400">Generated at <code className="text-yellow-400">target/cucumber-reports/</code></p>
-              </div>
-            </div>
-            <button onClick={() => setShowRunTestsModal(false)} className="mt-5 w-full bg-blue-600 hover:bg-blue-700 text-white py-2 rounded-lg transition-colors">Close</button>
           </div>
         </div>
       )}

@@ -4,15 +4,32 @@ import uuid
 import re
 from utils.openai_client import openai_client
 
-SYSTEM_PROMPT = """You are an expert Senior QA Automation Architect with 15+ years of experience designing enterprise Selenium automation frameworks.
-Your ONLY responsibility is to generate production-ready Java Selenium Page Object classes.
-Rules:
-- Use PageFactory with @FindBy annotations
-- Use WebDriverWait, never Thread.sleep()
-- Each page exposes actions, never assertions, never public WebElements
-- Use id > name > cssSelector > xpath locator priority
-- Every file must compile
-- No JSON, no YAML, no explanations - only Java source code"""
+SYSTEM_PROMPT = """You are a Principal SDET specialising in enterprise Java Selenium Page Object Model frameworks.
+Generate production-grade Java Page Object classes that are immediately compilable and maintainable.
+
+MANDATORY CODING STANDARDS:
+1. package pages;
+2. Every class MUST extend BasePage (from package pages)
+3. Constructor contract (EXACT — step definitions depend on it):
+   public LoginPage(WebDriver driver) {
+       super(driver);
+   }
+4. Private @FindBy WebElement fields only — never expose elements publicly
+5. Locator priority order: By.id > By.name > By.cssSelector > By.xpath
+6. All @FindBy XPath must be RELATIVE (start with //) and NOT absolute paths
+7. Avoid brittle locators like //div[1] or long absolute XPaths
+8. Prefer CSS selectors like input[name='email'], button[type='submit'], .error-message
+9. Public action methods: camelCase verbs (enterEmail, clickLogin, selectCategory)
+10. Methods return void for terminal actions, or the next Page class for navigation
+11. VERIFICATION GETTERS ARE MANDATORY: for EVERY element whose state a test can verify
+    (messages, statuses, totals, field values, record counts, headers), generate a public
+    getter returning the live value, e.g. getConfirmationMessage(), getOrderStatus(),
+    getErrorText(), getRecordCount(). Step definitions rely on these for real assertions.
+12. Use BasePage.waitForElementVisible() and BasePage.waitForElementClickable() for all interactions
+13. Include a Javadoc comment on every public method
+14. All required Java imports must be at the top — NO wildcard imports
+15. No TODO comments, no placeholder implementations, every method must be real code
+16. Return ONLY Java source code, no prose, no markdown fences"""
 
 
 class PageObjectAgent(BaseAgent):
@@ -46,49 +63,57 @@ class PageObjectAgent(BaseAgent):
             return {"page_objects": [], "total_pages": 0, "status": "failed", "error": str(e)}
 
     def _generate_page_objects(self, test_cases: List[Dict[str, Any]], document_content: str) -> List[Dict[str, Any]]:
-        test_cases_text = "\n".join([
-            f"- {tc.get('test_id','')}: {tc.get('scenario','')} | Steps: {', '.join(tc.get('steps',[]))}"
+        pages_needed = sorted(set(tc.get('module', 'Core') for tc in test_cases if tc.get('module')))
+        test_actions_text = "\n".join([
+            f"  [{tc.get('test_id','?')}] {tc.get('scenario','')}: {' | '.join(tc.get('steps', []))}"
             for tc in test_cases
         ])
 
-        user_prompt = f"""Generate Java Selenium Page Object classes for the following application based on the test cases.
+        user_prompt = f"""Generate Java Selenium Page Object classes for the application described below.
 
-Document Content:
-{document_content[:3000]}
+APPLICATION CONTEXT:
+{document_content[:4000]}
 
-Test Cases:
-{test_cases_text}
+UI INTERACTIONS NEEDED (derived from test cases):
+{test_actions_text}
 
-Requirements:
-- package pages;
-- Use PageFactory with @FindBy annotations
-- Use WebDriverWait for all interactions
-- Each class must have a constructor accepting WebDriver
-- Expose action methods, never public WebElements
-- Use SOLID principles
+PAGES TO GENERATE:
+Create one Page class per logical UI page/screen. Based on the test cases, identify pages such as:
+{', '.join(p + 'Page' for p in pages_needed) if pages_needed else 'LoginPage, RegistrationPage, DashboardPage, ProductPage, CartPage, CheckoutPage'}
 
-Return each Java class using this exact format:
+Also generate:
+- BasePage.java (package pages) — contains: WebDriver driver, WebDriverWait wait, constructor, helper methods:
+  waitForElementVisible(By), waitForElementClickable(By), getText(WebElement), isElementPresent(By)
+
+For each application page:
+- Identify all interactive elements from the context (input fields, buttons, links, error messages, headings)
+- Map each element to the most stable locator (prefer id, then name, then CSS selector)
+- Create one action method per user interaction
+
+Return each file using this EXACT delimiter:
 === FILE: ClassName.java ===
-[complete Java class content]
+[complete compilable Java class]
 
-Generate all page classes needed to cover the test cases."""
+Generate BasePage.java first, then all application page classes."""
 
         self.logger.info("Calling LLM to generate page objects...")
-        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=4000)
+        response = openai_client.generate_with_system_prompt(SYSTEM_PROMPT, user_prompt, max_tokens=6000)
 
         if response:
             self.logger.info(f"LLM returned {len(response)} chars for page objects")
-            return self._parse_java_files(response)
+            pages = self._parse_java_files(response)
+            return self._ensure_base_page(pages)
         else:
             self.logger.warning("LLM returned no response for page objects")
-            return []
+            return [self._default_base_page()]
 
     def _parse_java_files(self, response: str) -> List[Dict[str, Any]]:
         files = []
         parts = re.split(r'=== FILE: (.+?) ===', response)
         i = 1
         while i < len(parts) - 1:
-            filename = parts[i].strip()
+            raw_name = parts[i].strip()
+            filename = raw_name.replace('\\', '/').split('/')[-1]  # basename only
             content = parts[i + 1].strip()
             if content:
                 class_name = filename.replace('.java', '')
@@ -111,3 +136,95 @@ Generate all page classes needed to cover the test cases."""
             })
 
         return files
+
+    def _ensure_base_page(self, pages: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Guarantee BasePage.java is always present at the front of the list."""
+        has_base = any(p.get('filename', '').lower() == 'basepage.java' for p in pages)
+        if not has_base:
+            self.logger.info("BasePage.java not in LLM output — injecting default")
+            pages.insert(0, self._default_base_page())
+        return pages
+
+    @staticmethod
+    def _default_base_page() -> Dict[str, Any]:
+        content = '''package pages;
+
+import org.openqa.selenium.By;
+import org.openqa.selenium.NoSuchElementException;
+import org.openqa.selenium.WebDriver;
+import org.openqa.selenium.WebElement;
+import org.openqa.selenium.support.PageFactory;
+import org.openqa.selenium.support.ui.ExpectedConditions;
+import org.openqa.selenium.support.ui.WebDriverWait;
+import java.time.Duration;
+
+/**
+ * Base Page class providing common Selenium helper methods.
+ * All Page Object classes must extend this class.
+ */
+public class BasePage {
+
+    protected WebDriver driver;
+    protected WebDriverWait wait;
+
+    public BasePage(WebDriver driver) {
+        this.driver = driver;
+        this.wait = new WebDriverWait(driver, Duration.ofSeconds(20));
+        PageFactory.initElements(driver, this);
+    }
+
+    /** Wait until element is visible, then return it. */
+    protected WebElement waitForElementVisible(By locator) {
+        return wait.until(ExpectedConditions.visibilityOfElementLocated(locator));
+    }
+
+    /** Wait until element is clickable, then click it. */
+    protected void waitForElementClickable(By locator) {
+        wait.until(ExpectedConditions.elementToBeClickable(locator)).click();
+    }
+
+    /** Clear field and type text, with explicit wait. */
+    protected void type(By locator, String text) {
+        WebElement el = waitForElementVisible(locator);
+        el.clear();
+        el.sendKeys(text);
+    }
+
+    /** Get trimmed visible text from an element. */
+    protected String getText(By locator) {
+        return waitForElementVisible(locator).getText().trim();
+    }
+
+    /** Get trimmed text from a WebElement (e.g. @FindBy field). */
+    protected String getText(WebElement element) {
+        return element.getText().trim();
+    }
+
+    /** Return true if element is present in DOM without waiting. */
+    protected boolean isPresent(By locator) {
+        try {
+            driver.findElement(locator);
+            return true;
+        } catch (NoSuchElementException e) {
+            return false;
+        }
+    }
+
+    /** Navigate browser to a URL. */
+    public void navigateTo(String url) {
+        driver.get(url);
+    }
+
+    /** Return current page title. */
+    public String getPageTitle() {
+        return driver.getTitle();
+    }
+}
+'''
+        return {
+            "page_id": str(uuid.uuid4()),
+            "class_name": "BasePage",
+            "page_name": "BasePage",
+            "filename": "BasePage.java",
+            "content": content,
+        }

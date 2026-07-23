@@ -1,383 +1,434 @@
-# QA AI Platform - Architecture Documentation
+# QA Agent v2 — Architecture Overview
 
-## System Overview
+> **Client-Facing Architecture Documentation**  
+> Last updated: July 2026
 
-The QA AI Automation Platform is built on a **multi-agent architecture** where specialized AI agents work in coordination to automate the entire QA lifecycle from requirements to test execution.
+---
 
-## Core Principles
+## Table of Contents
 
-1. **Single Responsibility**: Each agent has one specific responsibility
-2. **Orchestrated Communication**: All inter-agent communication flows through the Orchestrator
-3. **Stateless Agents**: Agents don't maintain state between executions
-4. **Structured Data Exchange**: All data exchanged uses Pydantic models
-5. **Persistent Storage**: State is stored in PostgreSQL and Redis
-6. **Traceability**: Every artifact maintains lineage to source requirements
+1. [Project Overview](#1-project-overview)
+2. [Architecture Principles](#2-architecture-principles)
+3. [System Architecture](#3-system-architecture)
+4. [End-to-End Generation Pipeline](#4-end-to-end-generation-pipeline)
+5. [Inputs](#5-inputs)
+6. [Document Parsing](#6-document-parsing)
+7. [Project Knowledge Model (PKM)](#7-project-knowledge-model-pkm)
+8. [LLM Interaction Flow](#8-llm-interaction-flow)
+9. [Component Responsibilities](#9-component-responsibilities)
+10. [Data Flow](#10-data-flow)
+11. [Generated Outputs](#11-generated-outputs)
+12. [Traceability](#12-traceability)
+13. [Quality Validation](#13-quality-validation)
+14. [HTML Report Generation](#14-html-report-generation)
+15. [Packaging & Downloadable Artifacts](#15-packaging--downloadable-artifacts)
+16. [Current Capabilities](#16-current-capabilities)
+17. [Current Limitations](#17-current-limitations)
+18. [Future Enhancements](#18-future-enhancements)
+19. [Complete End-to-End Workflow Architecture](#19-complete-end-to-end-workflow-architecture)
 
-## Agent Architecture
+---
 
-### Agent Hierarchy
+## 1. Project Overview
+
+**QA Agent v2** is an intelligent, web-based automation engineering platform that transforms unstructured QA documents into a **production-ready Java Selenium + Cucumber BDD automation project**.
+
+The platform accepts standard QA inputs—functional specifications, manual test cases, and expected outputs—and automatically produces:
+
+- Modular Gherkin feature files
+- Reusable Page Object Model (POM) classes
+- Step definitions with assertion logic
+- Maven-ready utility framework
+- Quality scorecard and HTML report
+- Packaged ZIP artifact ready for download
+
+By combining an Azure OpenAI large language model with a local embedding-based knowledge store, the system understands domain context, preserves traceability from requirements to test scripts, and evaluates its own output quality.
+
+---
+
+## 2. Architecture Principles
+
+| Principle | Description |
+|-----------|-------------|
+| **High-level orchestration** | A central workflow coordinator sequences autonomous services without tight coupling. |
+| **Context-aware generation** | Every generation step receives focused, semantically relevant context retrieved from the ingested documents. |
+| **Traceability by design** | Every generated test script can be traced back to a requirement, test case, and feature file. |
+| **Quality assurance** | Output is validated by deterministic static analysis and LLM-based scoring before delivery. |
+| **Human-readable packaging** | Artifacts are assembled into a standard Maven project, complete with documentation and run instructions. |
+| **No test execution** | The system generates automation code; it does not execute tests against an application. |
+
+---
+
+## 3. System Architecture
+
+![3. System Architecture](architecture.svg)
+
+
+---
+
+## 4. End-to-End Generation Pipeline
+
+![4. End-to-End Generation Pipeline](architecture-pipeline.svg)
+
+
+### Pipeline Stages at a Glance
+
+| Stage | Purpose |
+|-------|---------|
+| 1. Upload | User uploads Functional Spec, Manual Test Cases, and Expected Output. |
+| 2. Parse & Ingest | Documents are parsed and indexed into the PKM. |
+| 3. Extract Requirements | Business requirements and rules are identified. |
+| 4. Extract Test Cases | Manual test cases are extracted with IDs, scenarios, steps, and expected results. |
+| 5. Build Contexts | The PKM retrieves relevant chunks for each generation task. |
+| 6. Generate Code | Feature files, Page Objects, Step Definitions, and utilities are generated. |
+| 7. Validate | Static analysis and LLM scoring measure quality. |
+| 8. Traceability | A requirement-to-script map is built. |
+| 9. Report & Package | HTML report and Maven-ready ZIP are produced. |
+
+---
+
+## 5. Inputs
+
+QA Agent v2 is designed around three canonical QA inputs:
+
+| Input Document | Purpose | Typical Format |
+|----------------|---------|----------------|
+| **Functional Specification** | Describes business requirements, user workflows, validation rules, and system behaviour. | `.docx`, `.txt` |
+| **Manual Test Cases** | Lists test IDs, scenarios, preconditions, steps, and expected results. | `.docx`, `.txt` |
+| **Expected Output** | Defines exact assertions, success/error messages, HTTP codes, or UI states. | `.xlsx`, `.docx` |
+
+These documents are ingested together so the system can align generated automation code with the actual specification and expected behaviour.
+
+---
+
+## 6. Document Parsing
+
+The Document Parsing layer transforms raw files into structured, normalized content.
+
+![6. Document Parsing](architecture-parsing.svg)
+
+
+### Normalized Output
+
+- **Paragraphs** — natural language sections
+- **Tables** — structured rows and columns
+- **Headings** — document hierarchy
+- **Lines** — raw text lines for plain-text files
+- **Full Content** — combined text for LLM consumption
+
+---
+
+## 7. Project Knowledge Model (PKM)
+
+The **Project Knowledge Model** is the system's semantic memory. It chunks, embeds, and indexes all parsed documents so each generation step receives targeted, relevant context rather than the full document text.
+
+![7. Project Knowledge Model (PKM)](architecture-pkm.svg)
+
+
+### Retrieval Strategy
+
+- **Document-aware filters** — target only expected-output documents for assertion extraction.
+- **Agent-specific queries** — BDD generator receives feature-oriented context, Page Object generator receives UI-oriented context.
+- **Test-case-driven queries** — each test case is used to retrieve the most relevant specification chunks.
+- **Keyword fallback** — if embedding libraries are unavailable, keyword overlap scoring preserves functionality.
+
+---
+
+## 8. LLM Interaction Flow
+
+All language-model generation is centralized through a single client interface, supporting Azure OpenAI as the primary provider.
+
+![8. LLM Interaction Flow](architecture-llm.svg)
+
+
+### Model Usage
+
+- **Azure OpenAI GPT-4o-mini** — used for all generative tasks: requirement extraction, test case extraction, Gherkin creation, Page Object generation, Step Definition generation, utility generation, and quality scoring.
+- **Local embedding model (`sentence-transformers` / `all-MiniLM-L6-v2`)** — used by the PKM to encode document chunks and queries into 384-dimensional vectors. No remote service is required for retrieval.
+
+### Prompt Design
+
+Each prompt is composed of:
+
+1. **Role definition** — clear persona and strict output rules
+2. **Context section** — PKM-retrieved relevant chunks
+3. **Expected output section** — assertions and success criteria
+4. **Data section** — formatted test cases or requirements
+5. **Instruction section** — exact generation task
+6. **Format section** — file delimiters and output constraints
+
+---
+
+## 9. Component Responsibilities
+
+| Component | Responsibility |
+|-----------|----------------|
+| **Document Ingestion Service** | Validates uploaded files, stores them for processing, and records document metadata. |
+| **Document Parser Service** | Extracts structured content from `.docx`, `.xlsx`, `.txt`, and `.csv` files. |
+| **Requirement Extraction Service** | Identifies business requirements and assigns traceable requirement IDs. |
+| **Test Case Extraction Service** | Parses manual test cases into a structured model (ID, scenario, preconditions, steps, expected results, priority, module). |
+| **Test Design Service** | Expands extracted test cases into positive, negative, boundary, smoke, and regression variants for broader coverage. |
+| **PKM Service** | Chunks, embeds, and retrieves relevant document context for each generation step. |
+| **BDD Feature Generator** | Converts test cases into Gherkin feature files, grouped by functional module, with `@req-*`, `@smoke`, and `@regression` tags. |
+| **Page Object Generator** | Produces Java POM classes with `BasePage` inheritance, CSS-preferring locators, and action methods. |
+| **Step Definition Generator** | Generates one Java Step Definition class per feature file, binding every Gherkin step to a reusable method call. |
+| **Locator Intelligence Service** | Refines and organizes UI locators for generated Page Objects. |
+| **Utility Generator** | Produces Maven project files (`pom.xml`), configuration files, driver factory, hooks, test runner, and shared utilities. |
+| **Quality Validator** | Runs static analysis and LLM scoring across 11 quality dimensions. |
+| **Traceability Builder** | Maps Requirements → Test Cases → Feature Files → Step Definitions → Page Objects. |
+| **HTML Report Generator** | Produces a client-ready HTML quality report with metrics, strengths, and improvement areas. |
+| **Artifact Packager** | Assembles generated files into a valid Maven-layout ZIP archive. |
+
+---
+
+## 10. Data Flow
+
+![10. Data Flow](architecture-dataflow.svg)
+
+
+### End-to-End Workflow Detail
+
+1. **User Upload** — the user uploads the three input documents through the web interface.
+2. **Ingestion & Parsing** — each file is validated, saved, and parsed into normalized content.
+3. **PKM Indexing** — the parsed content is chunked, embedded, and stored in a local FAISS index.
+4. **Requirement Extraction** — the LLM extracts business requirements with IDs.
+5. **Test Case Extraction** — the LLM extracts manual test cases from the test-case document.
+6. **Context Retrieval** — for each generation task, the PKM returns the most relevant specification and expected-output chunks.
+7. **BDD Generation** — Gherkin feature files are produced, grouped by functional module.
+8. **Page Object Generation** — reusable Java page classes are created.
+9. **Step Definition Generation** — Java step classes are generated, one per feature module, binding all Gherkin steps.
+10. **Utility Generation** — Maven build files and framework utilities are produced.
+11. **Validation** — all artifacts are analyzed statically and scored by the LLM.
+12. **Traceability** — a map linking requirements to generated artifacts is built.
+13. **Report & Package** — an HTML report and a ZIP file are generated for download.
+
+---
+
+## 11. Generated Outputs
+
+The platform produces a complete Java Selenium + Cucumber BDD project.
+
+| Artifact | Purpose |
+|----------|---------|
+| `*.feature` files | Gherkin test specifications, grouped by module |
+| `BasePage.java` | Shared Selenium actions and waits |
+| `*Page.java` classes | Page Object Model with locators and actions |
+| `*Steps.java` classes | Cucumber step implementations |
+| `DriverFactory.java` | ThreadLocal WebDriver lifecycle |
+| `ConfigReader.java` | Loads runtime configuration |
+| `Hooks.java` | Browser setup and teardown |
+| `TestRunner.java` | Cucumber JUnit runner |
+| `WaitUtils.java` / `ScreenshotUtils.java` | Shared helper utilities |
+| `pom.xml` | Maven build configuration |
+| `config.properties` / `cucumber.properties` | Runtime and Cucumber settings |
+| `README.md` | Human-readable run instructions and project summary |
+| `summary.json` | Machine-readable generation metrics |
+| `traceability.json` | Requirement-to-artifact traceability map |
+
+### Output ZIP Structure
 
 ```
-Orchestrator Agent (Central Coordinator)
-├── Document Ingestion Agent
-├── Document Parser Agent
-├── Requirement Extraction Agent
-├── Test Case Extraction Agent
-├── Test Design Agent
-├── Test Data Agent
-├── Automation Framework Agent
-├── BDD Generator Agent
-├── Page Object Agent
-├── Step Definition Agent
-├── Locator Intelligence Agent
-├── Utility Generator Agent
-├── Code Review Agent
-├── Execution Agent
-├── Reporting Agent
-└── Self-Healing Agent
+qa_automation_<project>.zip
+├── pom.xml
+├── README.md
+├── summary.json
+├── traceability.json
+└── src/test/
+    ├── resources/
+    │   ├── features/
+    │   │   ├── Authentication.feature
+    │   │   ├── Registration.feature
+    │   │   └── ...
+    │   ├── config.properties
+    │   └── cucumber.properties
+    └── java/
+        ├── config/
+        ├── pages/
+        ├── stepdefinitions/
+        ├── hooks/
+        ├── runners/
+        └── utils/
 ```
 
-### Agent Responsibilities
+---
 
-#### Document Ingestion Agent
-- Validates uploaded files
-- Stores documents in designated directories
-- Generates document IDs
-- Performs initial file type validation
+## 12. Traceability
 
-#### Document Parser Agent
-- Extracts structured data from DOCX files
-- Parses Excel spreadsheets
-- Identifies sections, tables, headings, paragraphs
-- Outputs normalized JSON structure
+Traceability is maintained across four layers:
 
-#### Requirement Extraction Agent
-- Identifies business requirements from documents
-- Extracts features, business rules, workflows
-- Identifies validations and preconditions
-- Creates requirement traceability
+![12. Traceability](architecture-traceability.svg)
 
-#### Test Case Extraction Agent
-- Parses manual test cases from documents
-- Extracts test IDs, scenarios, steps, expected results
-- Identifies test data and priority levels
-- Maps tests to modules/features
 
-#### Test Design Agent
-- Generates positive test scenarios
-- Creates negative test cases
-- Designs boundary value tests
-- Generates equivalence partitions
-- Creates smoke, sanity, and regression test suites
+### How Traceability is Preserved
 
-#### Test Data Agent
-- Generates valid test data
-- Creates invalid data for negative testing
-- Produces boundary value data
-- Generates null/empty data sets
-- Creates security testing payloads (SQL injection, XSS, etc.)
+- Requirements are extracted with IDs such as `REQ-001`.
+- Gherkin scenarios are tagged with `@req-001` to link back to the originating requirement.
+- Test cases retain their original IDs and are referenced during feature generation.
+- Step Definitions are generated per feature module, ensuring a 1:1 Gherkin step-to-method mapping.
+- Page Object methods are consumed by Step Definitions, creating a clean API contract.
 
-#### Automation Framework Agent
-- Selects appropriate automation framework
-- Configures framework-specific settings
-- Manages framework dependencies
-- Supports Java Selenium and Python Selenium
+The resulting `traceability.json` enables impact analysis: changing a requirement immediately identifies which feature files, step definitions, and page objects are affected.
 
-#### BDD Generator Agent
-- Creates Gherkin feature files
-- Generates scenarios from test cases
-- Produces Given-When-Then steps
-- Maintains feature file structure
+---
 
-#### Page Object Agent
-- Generates reusable page classes
-- Identifies page elements
-- Creates page-specific methods
-- Ensures page object patterns
+## 13. Quality Validation
 
-#### Step Definition Agent
-- Implements step definitions from Gherkin steps
-- Maps steps to page objects
-- Generates assertion logic
-- Creates reusable step implementations
+The Quality Validator operates in two phases.
 
-#### Locator Intelligence Agent
-- Analyzes UI elements
-- Selects optimal locator strategies
-- Priority: ID > Name > CSS > XPath > Relative XPath
-- Generates fallback locators
+### Phase 1 — Static Analysis
 
-#### Utility Generator Agent
-- Creates driver management utilities
-- Generates configuration managers
-- Produces logging utilities
-- Creates screenshot and reporting utilities
-- Generates Excel/JSON readers
-- Creates retry and wait utilities
+Deterministic checks performed without LLM cost:
 
-#### Code Review Agent
-- Validates naming standards
-- Checks SOLID principles compliance
-- Identifies code smells
-- Detects duplicate logic
-- Ensures reusability
+| Check | Goal |
+|-------|------|
+| `Thread.sleep` detection | Avoid hard waits in Page Objects |
+| Brittle XPath detection | Flag absolute or generic XPath selectors |
+| `BasePage` inheritance | Confirm common action reuse pattern |
+| Smoke / regression tags | Verify tagging conventions |
+| `@req-*` tag coverage | Measure requirement traceability |
+| Duplicate step patterns | Detect conflicting step definitions |
+| Assertion presence | Ensure `Then` steps validate outcomes |
+| TODO comments | Flag placeholder code |
+| Core utility completeness | Check for DriverFactory, BasePage, Hooks, TestRunner, ConfigReader |
 
-#### Execution Agent
-- Runs test suites
-- Manages browser instances
-- Captures screenshots and logs
-- Records execution metrics
-- Handles parallel execution
+### Phase 2 — LLM Quality Scoring
 
-#### Reporting Agent
-- Generates HTML reports
-- Creates JSON reports
-- Produces execution summaries
-- Calculates statistics
-- Tracks pass/fail rates
+The static report and representative code samples are sent to Azure OpenAI GPT-4o-mini to score the following dimensions:
 
-#### Self-Healing Agent
-- Detects broken locators
-- Suggests locator updates
-- Adjusts timeouts
-- Implements retry logic
-- Never modifies business logic
+- Gherkin Quality
+- Java Code Quality
+- Step Definition Coverage
+- Page Object Quality
+- Locator Quality
+- Framework Structure
+- Traceability
+- Assertion Quality
+- Maintainability
+- Automation Readiness
 
-### Orchestrator Agent
+The **Overall Quality Score** is computed as a deterministic weighted average of these dimensions, producing a 0–100 score that reflects the actual generated project.
 
-The Orchestrator Agent is the central coordinator that:
-- Manages workflow execution
-- Sequences agent execution
-- Handles dependencies between agents
-- Manages state and context
-- Implements retry logic
-- Logs all agent activities
-- Tracks workflow progress
+---
 
-## Data Flow
+## 14. HTML Report Generation
 
-### Workflow Execution Flow
+After validation, an HTML quality report is produced alongside the ZIP.
 
-```
-User Upload
-    ↓
-Document Ingestion Agent
-    ↓
-Document Parser Agent
-    ├→ Requirement Extraction Agent
-    └→ Test Case Extraction Agent
-        ↓
-    Orchestrator (Coordination Point)
-        ├→ Test Design Agent
-        ├→ Test Data Agent
-        ├→ Automation Framework Agent
-        │   ├→ BDD Generator Agent
-        │   ├→ Page Object Agent
-        │   ├→ Step Definition Agent
-        │   ├→ Locator Intelligence Agent
-        │   └→ Utility Generator Agent
-        ├→ Code Review Agent
-        ├→ Build & Validation
-        ├→ Execution Agent
-        ├→ Reporting Agent
-        └→ Self-Healing Agent
-            ↓
-        Final Deliverables
-```
+### Report Contents
 
-## Data Models
+- **Generation Summary** — input files, timestamp, framework
+- **Metrics Cards** — requirements, test cases parsed, generated test scripts, feature files, page objects, step definition classes, utility files
+- **Overall Quality Score** — large score display with colour-coded badge
+- **Dimension Score Table** — each quality dimension with 0–100 score
+- **Key Strengths** — green-tagged positives from the validation
+- **Improvement Areas** — actionable suggestions
+- **Critical Issues** — red-tagged blockers, if any
+- **Input Files Used** — list of uploaded documents
+- **Running the Tests** — `mvn clean test` instructions
 
-### Core Entities
+The report is exposed through a dedicated download endpoint and is also included inside the generated ZIP.
 
-**Project**
-- project_id (UUID)
-- project_name (String)
-- description (Text)
-- status (Enum: draft, automation_generated, executed)
-- automation_framework (String)
-- created_at, updated_at (DateTime)
+---
 
-**Document**
-- document_id (UUID)
-- project_id (FK)
-- document_type (Enum: functional_spec, test_cases, expected_output)
-- filename (String)
-- file_path (String)
-- parsed_content (JSON)
+## 15. Packaging & Downloadable Artifacts
 
-**Requirement**
-- requirement_id (UUID)
-- project_id (FK)
-- feature (String)
-- business_rules (JSON Array)
-- workflows (JSON Array)
-- validations (JSON Array)
-- preconditions (JSON Array)
-- dependencies (JSON Array)
+The Artifact Packager assembles a valid, ready-to-build Maven project into a ZIP file.
 
-**TestCase**
-- test_id (UUID)
-- project_id (FK)
-- scenario (String)
-- preconditions (JSON Array)
-- steps (JSON Array)
-- expected_results (JSON Array)
-- test_data (JSON Object)
-- priority (Enum: low, medium, high)
-- module (String)
+### Artifacts Included
 
-**AutomationModel**
-- model_id (UUID)
-- project_id (FK)
-- requirements (JSON Array)
-- test_cases (JSON Array)
-- locators (JSON Object)
-- pages (JSON Array)
-- assertions (JSON Array)
-- business_rules (JSON Array)
-- generated_scripts (JSON Array)
-- metadata (JSON Object)
+- All Gherkin feature files
+- All Java source files (Page Objects, Step Definitions, utilities, hooks, runners)
+- Maven `pom.xml`
+- Configuration and Cucumber property files
+- `README.md` with run instructions
+- `summary.json` with metrics and quality scores
+- `traceability.json` with requirement-to-script mapping
+- `report.html` for client review
+
+The user can download either the full ZIP or the standalone HTML report through the web interface.
+
+---
+
+## 16. Current Capabilities
+
+- Upload and parse `.docx`, `.xlsx`, `.txt`, and `.csv` documents
+- Extract requirements and manual test cases via LLM
+- Build a local semantic knowledge store for targeted retrieval
+- Generate modular Gherkin feature files by functional area
+- Generate Java Page Object Model classes with shared `BasePage`
+- Generate one Step Definition class per feature module
+- Generate Maven project structure and utilities
+- Validate output with static analysis and LLM scoring
+- Produce HTML quality report and traceability map
+- Package everything into a downloadable ZIP
+
+---
+
+## 17. Current Limitations
+
+| Area | Limitation |
+|------|------------|
+| **Concurrency** | In-memory PKM and project store are rebuilt per run; not designed for horizontal scaling. |
+| **PDF Support** | `.pdf` files may be accepted but are not parsed into content. |
+| **Execution** | The platform generates code; it does not execute tests against a real application. |
+| **Framework Variety** | Only Java + Selenium + Cucumber is supported as an output target. |
+| **Authentication** | Single-tenant demo mode; no user authentication or role-based access control. |
+| **Persistence** | State is saved to JSON files; database-backed storage is not yet implemented. |
+
+---
+
+## 18. Future Enhancements
+
+| Priority | Enhancement |
+|----------|-------------|
+| High | Database-backed persistence for multi-user support |
+| High | Real-time generation progress via WebSocket |
+| High | Additional output targets: Python + Playwright |
+| High | PDF content extraction support |
+| Medium | Persistent per-project FAISS indexes across sessions |
+| Medium | CI/CD pipeline configuration generation |
+| Medium | Regeneration of individual artifacts (e.g., only step definitions) |
+| Medium | User feedback loop for iterative quality improvement |
+| Low | Additional languages: TypeScript + WebdriverIO, C# + SpecFlow |
+| Low | Visual locator recorder browser extension |
+| Low | Test execution result ingestion and flaky-test detection |
+
+---
 
 ## Technology Stack
 
-### Backend
-- **Framework**: FastAPI
-- **Language**: Python 3.12+
-- **ORM**: SQLAlchemy
-- **Database**: PostgreSQL
-- **Cache**: Redis
-- **Agent Orchestration**: LangGraph
-- **LLM Integration**: LangChain
-- **Logging**: Loguru
+| Layer | Technology |
+|-------|------------|
+| Frontend | React 18, Vite, TailwindCSS |
+| Backend API | FastAPI, Python 3.12 |
+| LLM | Azure OpenAI GPT-4o-mini |
+| Embeddings | Local `sentence-transformers` with `all-MiniLM-L6-v2` |
+| Vector Store | FAISS |
+| Document Parsing | `python-docx`, `pandas` / `openpyxl`, plain text |
+| Generated Output | Java 11 + Selenium 4 + Cucumber 7 + Maven |
+| Persistence | In-memory + JSON file storage |
 
-### Frontend
-- **Framework**: React 18
-- **Language**: TypeScript/JavaScript
-- **Styling**: Tailwind CSS
-- **Build Tool**: Vite
-- **HTTP Client**: Axios
+---
 
-### Deployment
-- **Containerization**: Docker
-- **Orchestration**: Docker Compose (dev), Kubernetes (prod)
-- **CI/CD**: GitHub Actions
-- **Storage**: Local filesystem (dev), Cloud Storage (prod)
+## 19. Complete End-to-End Workflow Architecture
 
-## API Architecture
+The following diagram depicts the full workflow from the moment documents are uploaded until the final automation project is delivered.
 
-### RESTful Endpoints
+![19. Complete End-to-End Workflow Architecture](architecture-workflow.svg)
 
-**Projects**
-- `POST /api/projects` - Create project
-- `GET /api/projects/{id}` - Get project
-- `GET /api/projects` - List projects
-- `PUT /api/projects/{id}` - Update project
-- `DELETE /api/projects/{id}` - Delete project
 
-**Documents**
-- `POST /api/projects/{id}/upload` - Upload document
-- `GET /api/projects/{id}/documents` - List documents
-- `DELETE /api/documents/{id}` - Delete document
+### Workflow Stage Summary
 
-**Automation**
-- `POST /api/projects/{id}/generate` - Generate automation
-- `GET /api/projects/{id}/status` - Get generation status
-- `GET /api/projects/{id}/artifacts` - Download artifacts
+| Stage | Key Activities | Output |
+|-------|----------------|--------|
+| 1. User Interaction | User uploads files and starts generation through the web interface | Generation request |
+| 2. Ingestion & Parsing | Files are validated, parsed, and converted into a normalized content model | Parsed content |
+| 3. Understanding | Requirements and manual test cases are extracted; test design is expanded | Requirements + test cases |
+| 4. Context Retrieval | PKM returns targeted specification and expected-output chunks | Focused context per generation task |
+| 5. Code Generation | Feature files, page objects, step definitions, and utilities are generated | Java Maven project |
+| 6. Validation & Reporting | Artifacts are validated, scored, traced, and reported | Quality scorecard + traceability map |
+| 7. Delivery | All artifacts are packaged into a ZIP and an HTML report is made available | Downloadable ZIP + HTML report |
 
-**Execution**
-- `POST /api/projects/{id}/execute` - Execute tests
-- `GET /api/projects/{id}/results` - Get execution results
+---
 
-**Health**
-- `GET /api/health` - Health check
-
-## Database Schema
-
-### Tables
-- projects
-- uploaded_documents
-- parsed_requirements
-- manual_test_cases
-- automation_models
-- generated_scripts
-- execution_results
-- agent_logs
-- prompt_versions
-- build_history
-
-## Deployment Architecture
-
-### Development
-```
-Docker Compose
-├── PostgreSQL (Database)
-├── Redis (Cache)
-├── FastAPI Backend
-└── React Frontend
-```
-
-### Production
-```
-Kubernetes Cluster
-├── PostgreSQL StatefulSet
-├── Redis Cache
-├── FastAPI Deployment (replicas)
-├── React Frontend (CDN)
-├── Ingress Controller
-└── Monitoring Stack
-```
-
-## Security Considerations
-
-1. **Authentication**: JWT tokens for API access
-2. **Authorization**: Role-based access control
-3. **Data Validation**: Pydantic models for all inputs
-4. **SQL Injection Prevention**: SQLAlchemy ORM
-5. **CORS**: Configured for frontend domain
-6. **Environment Variables**: Sensitive data in .env files
-7. **Logging**: Sensitive data masked in logs
-
-## Performance Optimization
-
-1. **Caching**: Redis for frequently accessed data
-2. **Database Indexing**: Indexes on project_id, document_id
-3. **Async Operations**: FastAPI async endpoints
-4. **Parallel Execution**: Support for parallel test execution
-5. **Connection Pooling**: SQLAlchemy connection pooling
-
-## Monitoring & Observability
-
-1. **Logging**: Structured logging with Loguru
-2. **Metrics**: Prometheus metrics (optional)
-3. **Tracing**: Distributed tracing (optional)
-4. **Dashboards**: Grafana integration (optional)
-5. **Alerts**: Alert configuration (optional)
-
-## Scalability
-
-1. **Horizontal Scaling**: Multiple backend instances
-2. **Load Balancing**: Nginx/HAProxy
-3. **Database Scaling**: Read replicas for PostgreSQL
-4. **Caching Layer**: Redis cluster
-5. **Message Queue**: RabbitMQ for async tasks (future)
-
-## Error Handling
-
-1. **Agent Failures**: Retry logic with exponential backoff
-2. **Validation Errors**: Pydantic validation with detailed messages
-3. **Database Errors**: Transaction rollback and logging
-4. **API Errors**: Standard HTTP status codes
-5. **Logging**: Comprehensive error logging
-
-## Future Enhancements
-
-1. **Prompt Management Agent**: Dynamic prompt versioning
-2. **Validation Agent**: Comprehensive validation framework
-3. **RAG Knowledge Base**: Retrieval-augmented generation
-4. **Human Approval Workflow**: Manual review gates
-5. **Configuration Manager**: Dynamic configuration
-6. **Playwright Support**: Modern browser automation
-7. **Mobile Testing**: Mobile app automation
-8. **API Testing**: REST/GraphQL API testing
-9. **Performance Testing**: Load and stress testing
-10. **Advanced Analytics**: ML-based insights
+*End of document*

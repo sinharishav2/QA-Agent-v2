@@ -9,7 +9,7 @@ from pathlib import Path
 class DocumentIngestionAgent(BaseAgent):
     def __init__(self):
         super().__init__("DocumentIngestionAgent")
-        self.supported_types = ['.docx', '.xlsx', '.xls', '.pdf']
+        self.supported_types = ['.docx', '.xlsx', '.xls', '.pdf', '.txt', '.csv']
 
     def execute(self, input_data: Dict[str, Any]) -> Dict[str, Any]:
         try:
