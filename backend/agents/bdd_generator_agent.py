@@ -9,19 +9,23 @@ Generate production-ready Cucumber .feature files that are immediately executabl
 
 STRICT GHERKIN RULES:
 1. Feature title = business capability (not technical phrase)
-2. Every Scenario title is unique and matches the source test case name
-3. Tag every Scenario: @<priority-tag> @<module-tag> @req-<REQ-ID> (use @smoke for High priority, @regression for Medium/Low)
-4. Use Background: block for shared preconditions across scenarios in the same Feature
-5. Use Scenario Outline + Examples: for data-driven tests with 2+ data sets
-6. Given = system state, When = user action, Then = verifiable observable outcome
-7. Then steps MUST reference exact expected values from the Expected Output section when provided
+2. EVERY test case MUST become exactly ONE Scenario (or Scenario Outline) — never merge, drop, or skip a test case
+3. Every Scenario title is unique and matches the source test case name
+4. Tag every Scenario with ALL of: priority tag, module tag, and EVERY applicable @req-<REQ-ID>
+   - A scenario that verifies multiple requirements carries multiple @req-* tags
+   - Every requirement in the provided REQUIREMENTS list that is exercised by any test case MUST appear on at least one scenario
+5. Tag the primary happy-path scenario of each Feature with @smoke (in addition to High-priority test cases); tag all others @regression
+6. Use Background: block for shared preconditions across scenarios in the same Feature
+7. Use Scenario Outline + Examples: for data-driven tests with 2+ data sets
+8. Given = system state, When = user action, Then = verifiable observable outcome
+9. Then steps MUST reference exact expected values from the Expected Output section when provided
    Example: Then the HTTP response status should be 201
             And the success message should be "Registration successful. Please check your email."
-8. Avoid vague Then steps like "the user sees a message" – be specific
-9. Each step line must be a single, atomic action or assertion
-10. Add @negative tag to all negative / error scenarios
-11. Never output JSON, YAML, or Java inside .feature files
-12. Return ONLY valid Gherkin – no prose, no markdown fences"""
+10. Avoid vague Then steps like "the user sees a message" – be specific: assert exact text, exact status, exact state
+11. Each step line must be a single, atomic action or assertion
+12. Add @negative tag to all negative / error scenarios
+13. Never output JSON, YAML, or Java inside .feature files
+14. Return ONLY valid Gherkin – no prose, no markdown fences"""
 
 
 class BDDGeneratorAgent(BaseAgent):
@@ -36,8 +40,9 @@ class BDDGeneratorAgent(BaseAgent):
             test_cases = input_data['test_cases']
             project_id = input_data['project_id']
             document_content = input_data.get('document_content', '')
+            requirements = input_data.get('requirements', [])
 
-            feature_files = self._generate_feature_files(test_cases, document_content)
+            feature_files = self._generate_feature_files(test_cases, document_content, requirements)
 
             output_data = {
                 "project_id": project_id,
@@ -75,7 +80,7 @@ class BDDGeneratorAgent(BaseAgent):
                 return module
         return 'CoreFunctionality'
 
-    def _generate_feature_files(self, test_cases: List[Dict[str, Any]], document_content: str) -> List[Dict[str, Any]]:
+    def _generate_feature_files(self, test_cases: List[Dict[str, Any]], document_content: str, requirements: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         # Derive module for every test case that doesn't have one
         for tc in test_cases:
             if not tc.get('module') or tc['module'].strip().lower() in ('general', 'core', ''):
@@ -85,23 +90,46 @@ class BDDGeneratorAgent(BaseAgent):
 
         test_cases_text = self._format_test_cases(test_cases)
         modules = sorted(set(tc.get('module', 'CoreFunctionality') for tc in test_cases))
+        requirements_text = self._format_requirements(requirements or [])
 
-        user_prompt = f"""Generate one Cucumber .feature file per module. Group test cases by their Module field.
+        # If keyword-based module derivation failed for most test cases (unknown domain),
+        # let the LLM derive functional groupings from the content instead.
+        generic_count = sum(1 for tc in test_cases if tc.get('module') == 'CoreFunctionality')
+        if test_cases and generic_count / len(test_cases) > 0.5:
+            module_instruction = (
+                "Derive the functional modules YOURSELF from the test cases and requirements "
+                "(e.g. by business process, transaction type, or workflow stage). "
+                f"Group the {len(test_cases)} scenarios into multiple Feature files — "
+                "aim for one Feature per functional area (typically 3\u20136 files). "
+                "Do NOT put all scenarios into a single Feature file."
+            )
+        else:
+            module_instruction = f"Modules identified: {', '.join(modules)}"
 
-Modules identified: {', '.join(modules) if modules else 'Authentication, Registration, ProductCatalog, ShoppingCart, Checkout'}
+        user_prompt = f"""Generate one Cucumber .feature file per functional module.
 
-CONTEXT (Requirements + Expected Outputs):
+{module_instruction}
+
+REQUIREMENTS TO TRACE (tag scenarios with the matching @req-<ID> tags — a scenario may carry several):
+{requirements_text}
+
+CONTEXT (Specification + Expected Outputs):
 {document_content[:4000]}
 
-TEST CASES TO CONVERT:
+TEST CASES TO CONVERT ({len(test_cases)} test cases → you MUST produce exactly {len(test_cases)} scenarios):
 {test_cases_text}
 
 INSTRUCTIONS:
-- One .feature file per module (e.g. Authentication.feature, ShoppingCart.feature)
-- Group Scenarios from the same module into the same Feature file
-- Carry @req-<REQ-ID> tags from the test cases where available
+- One .feature file per functional module, named after the module (PascalCase, e.g. OrderExport.feature)
+- Group related Scenarios into the same Feature file; split unrelated ones into separate files
+- STRICT COUNT RULE: EVERY test case becomes exactly ONE Scenario. Your output must contain
+  EXACTLY {len(test_cases)} Scenario/Scenario Outline blocks across all files — count them before finishing.
+  Do NOT invent additional scenarios, do NOT split one test case into several scenarios.
+- Map each scenario to the REQUIREMENTS list above: tag with EVERY @req-<ID> it verifies
+- Cover as many requirements from the list as the test cases allow — spread tags accurately, never invent coverage
+- Tag the primary happy-path scenario of each Feature with @smoke
 - Use Scenario Outline + Examples for any test case that tests multiple data inputs
-- Extract exact error messages and HTTP codes from the Context section for Then steps
+- Extract exact error messages, field validations, and status codes from the Context section for Then steps
 - Add Background: block if 2+ scenarios in a Feature share the same Given step
 
 IMPORTANT: NEVER use 'General.feature' or 'Core.feature' as a filename.
@@ -123,6 +151,19 @@ Generate all feature files now."""
         else:
             self.logger.warning("LLM returned no response for feature files")
             return []
+
+    def _format_requirements(self, requirements: List[Dict[str, Any]]) -> str:
+        if not requirements:
+            return "(no requirements list provided — derive @req tags from test case references)"
+        lines = []
+        for req in requirements:
+            rid = req.get('requirement_id', 'REQ-?')
+            text = req.get('feature') or req.get('requirement') or req.get('description') or ''
+            rules = req.get('business_rules') or []
+            lines.append(f"{rid}: {text}")
+            for rule in rules[:3]:
+                lines.append(f"    - {rule}")
+        return "\n".join(lines)
 
     def _format_test_cases(self, test_cases: List[Dict[str, Any]]) -> str:
         lines = []

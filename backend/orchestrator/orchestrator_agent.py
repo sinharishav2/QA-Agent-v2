@@ -1,5 +1,6 @@
 from typing import Dict, Any, List, Optional
 from loguru import logger
+import re
 import uuid
 from datetime import datetime
 
@@ -60,7 +61,7 @@ class OrchestratorAgent:
 
             # Step 5: Framework + code generation (with enriched context)
             framework = self._execute_framework_selection(workflow_id, project_id)
-            feature_files = self._execute_bdd_generation(workflow_id, test_cases, bdd_context)
+            feature_files = self._execute_bdd_generation(workflow_id, test_cases, bdd_context, requirements)
             page_objects = self._execute_page_object_generation(workflow_id, test_cases, po_context)
             step_definitions = self._execute_step_definition_generation(workflow_id, feature_files, page_objects)
             locators = self._execute_locator_intelligence(workflow_id, page_objects)
@@ -155,7 +156,13 @@ class OrchestratorAgent:
         self.logger.info(f"Executing requirement extraction for workflow {workflow_id}")
         requirements = []
 
-        for doc in parsed_documents:
+        # Requirements live in the functional specification — extracting them from
+        # test case / expected output docs produces duplicate & noisy requirements
+        # that destroy traceability. Fall back to all docs only if no spec doc exists.
+        spec_docs = [d for d in parsed_documents if d.get('document_type') == 'functional_specification']
+        docs_for_requirements = spec_docs or parsed_documents
+
+        for doc in docs_for_requirements:
             try:
                 agent = self.agent_registry.get("RequirementExtractionAgent")
                 if agent:
@@ -170,7 +177,42 @@ class OrchestratorAgent:
                 self.logger.error(f"Requirement extraction failed: {str(e)}")
                 self._log_step(workflow_id, "RequirementExtraction", "failed", {"error": str(e)})
 
-        return requirements
+        deduped = self._dedupe_requirements(requirements)
+        self.logger.info(f"Requirements: {len(requirements)} extracted, {len(deduped)} after dedup")
+        return deduped
+
+    @staticmethod
+    def _dedupe_requirements(requirements: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
+        """Remove near-duplicate requirements and guarantee unique sequential IDs."""
+        deduped: List[Dict[str, Any]] = []
+        seen_texts: List[set] = []
+        stop = {"the", "a", "an", "is", "are", "to", "of", "and", "in", "that", "for", "shall", "should", "must", "be", "system", "user"}
+
+        for req in requirements:
+            text = str(req.get('feature') or req.get('requirement') or req.get('description') or '').strip()
+            if not text:
+                continue
+            words = set(re.findall(r"\w+", text.lower())) - stop
+            is_dup = any(
+                words and prev and len(words & prev) / max(min(len(words), len(prev)), 1) > 0.8
+                for prev in seen_texts
+            )
+            if not is_dup:
+                seen_texts.append(words)
+                deduped.append(req)
+
+        # Reassign clean unique IDs (keep existing well-formed IDs when not colliding)
+        used_ids = set()
+        next_seq = 1
+        for req in deduped:
+            rid = str(req.get('requirement_id') or '').strip().upper()
+            if not re.match(r'^REQ-[\w.]+$', rid) or rid in used_ids:
+                while f"REQ-{next_seq:03d}" in used_ids:
+                    next_seq += 1
+                rid = f"REQ-{next_seq:03d}"
+            used_ids.add(rid)
+            req['requirement_id'] = rid
+        return deduped
 
     def _execute_test_case_extraction(self, workflow_id: str, parsed_documents: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing test case extraction for workflow {workflow_id}")
@@ -252,12 +294,12 @@ class OrchestratorAgent:
             self._log_step(workflow_id, "FrameworkSelection", "failed", {"error": str(e)})
         return {}
 
-    def _execute_bdd_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]], document_content: str = '') -> List[Dict[str, Any]]:
+    def _execute_bdd_generation(self, workflow_id: str, test_cases: List[Dict[str, Any]], document_content: str = '', requirements: List[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
         self.logger.info(f"Executing BDD generation for workflow {workflow_id}")
         try:
             agent = self.agent_registry.get("BDDGeneratorAgent")
             if agent:
-                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id, "document_content": document_content})
+                result = agent.execute({"test_cases": test_cases, "project_id": workflow_id, "document_content": document_content, "requirements": requirements or []})
                 self._log_step(workflow_id, "BDDGeneration", "success", result)
                 return result.get('feature_files', [])
         except Exception as e:

@@ -87,7 +87,7 @@ class GeneratedTestScriptValidatorAgent(BaseAgent):
         scenario_outline = re.findall(r"^\s*Scenario Outline:", all_feature_text, re.MULTILINE)
         smoke_tags       = re.findall(r"@smoke", all_feature_text, re.IGNORECASE)
         regression_tags  = re.findall(r"@regression", all_feature_text, re.IGNORECASE)
-        req_tags         = re.findall(r"@req-\w+", all_feature_text, re.IGNORECASE)
+        req_tags         = set(t.lower() for t in re.findall(r"@req-[\w.]+", all_feature_text, re.IGNORECASE))
         then_steps       = re.findall(r"^\s*Then\s+.+", all_feature_text, re.MULTILINE)
         vague_then       = [s for s in then_steps if re.search(r"\bshould\s+(be\s+)?(visible|present|displayed)\b", s, re.IGNORECASE)]
 
@@ -166,8 +166,9 @@ class GeneratedTestScriptValidatorAgent(BaseAgent):
         test_cases: List[Dict],
     ) -> Dict[str, Any]:
 
-        req_coverage = (
-            static_report["gherkin"]["req_traced_tags"] / max(len(requirements), 1) * 100
+        req_coverage = min(
+            static_report["gherkin"]["req_traced_tags"] / max(len(requirements), 1) * 100,
+            100.0,
         )
 
         context_parts = [
@@ -177,11 +178,17 @@ class GeneratedTestScriptValidatorAgent(BaseAgent):
         ]
 
         if feature_files:
-            context_parts.append(f"FEATURE FILE SAMPLE:\n{feature_files[0].get('content','')[:1200]}")
+            context_parts.append(f"FEATURE FILE SAMPLE (excerpt):\n{feature_files[0].get('content','')[:3000]}")
         if page_objects:
-            context_parts.append(f"PAGE OBJECT SAMPLE:\n{page_objects[0].get('content','')[:1200]}")
+            po_sample = next((p for p in page_objects if p.get('class_name') != 'BasePage'), page_objects[0])
+            context_parts.append(f"PAGE OBJECT SAMPLE (excerpt):\n{po_sample.get('content','')[:3000]}")
         if step_definitions:
-            context_parts.append(f"STEP DEFINITION SAMPLE:\n{step_definitions[0].get('content','')[:1200]}")
+            context_parts.append(f"STEP DEFINITION SAMPLE (excerpt):\n{step_definitions[0].get('content','')[:3000]}")
+
+        context_parts.append(
+            "NOTE: The code samples above are truncated excerpts provided for review only. "
+            "The full files are complete — do NOT treat apparent sample truncation as an incomplete or broken artifact."
+        )
 
         context = "\n\n".join(context_parts)
 

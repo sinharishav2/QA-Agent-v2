@@ -10,19 +10,26 @@ Generate production-grade Java Page Object classes that are immediately compilab
 MANDATORY CODING STANDARDS:
 1. package pages;
 2. Every class MUST extend BasePage (from package pages)
-3. Private @FindBy WebElement fields only — never expose elements publicly
-4. Locator priority order: By.id > By.name > By.cssSelector > By.xpath
-5. All @FindBy XPath must be RELATIVE (start with //) and NOT absolute paths
-6. Avoid brittle locators like //div[1] or long absolute XPaths
-7. Prefer CSS selectors like input[name='email'], button[type='submit'], .error-message
-8. Public action methods: camelCase verbs (enterEmail, clickLogin, selectCategory)
-9. Methods return void for terminal actions, or the next Page class for navigation
-10. Use BasePage.waitForElementVisible() and BasePage.waitForElementClickable() for all interactions
-11. Include a Javadoc comment on every public method
-12. PageFactory.initElements(driver, this) in the constructor
-13. All required Java imports must be at the top — NO wildcard imports
-14. No TODO comments, no placeholder implementations, every method must be real code
-15. Return ONLY Java source code, no prose, no markdown fences"""
+3. Constructor contract (EXACT — step definitions depend on it):
+   public LoginPage(WebDriver driver) {
+       super(driver);
+   }
+4. Private @FindBy WebElement fields only — never expose elements publicly
+5. Locator priority order: By.id > By.name > By.cssSelector > By.xpath
+6. All @FindBy XPath must be RELATIVE (start with //) and NOT absolute paths
+7. Avoid brittle locators like //div[1] or long absolute XPaths
+8. Prefer CSS selectors like input[name='email'], button[type='submit'], .error-message
+9. Public action methods: camelCase verbs (enterEmail, clickLogin, selectCategory)
+10. Methods return void for terminal actions, or the next Page class for navigation
+11. VERIFICATION GETTERS ARE MANDATORY: for EVERY element whose state a test can verify
+    (messages, statuses, totals, field values, record counts, headers), generate a public
+    getter returning the live value, e.g. getConfirmationMessage(), getOrderStatus(),
+    getErrorText(), getRecordCount(). Step definitions rely on these for real assertions.
+12. Use BasePage.waitForElementVisible() and BasePage.waitForElementClickable() for all interactions
+13. Include a Javadoc comment on every public method
+14. All required Java imports must be at the top — NO wildcard imports
+15. No TODO comments, no placeholder implementations, every method must be real code
+16. Return ONLY Java source code, no prose, no markdown fences"""
 
 
 class PageObjectAgent(BaseAgent):

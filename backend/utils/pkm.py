@@ -98,11 +98,15 @@ class ProjectKnowledgeModel:
     def _build_index(self) -> None:
         try:
             texts = [c["text"] for c in self.chunks]
-            self.embeddings = self.model.encode(texts, show_progress_bar=False)
+            # normalize_embeddings=True + inner-product index == cosine similarity,
+            # which ranks semantic relevance better than raw L2 distance
+            self.embeddings = self.model.encode(
+                texts, show_progress_bar=False, normalize_embeddings=True
+            )
             dim = self.embeddings.shape[1]
-            self.index = faiss.IndexFlatL2(dim)
+            self.index = faiss.IndexFlatIP(dim)
             self.index.add(self.embeddings.astype("float32"))
-            logger.info(f"PKM FAISS index built: {len(texts)} vectors, dim={dim}")
+            logger.info(f"PKM FAISS index built (cosine): {len(texts)} vectors, dim={dim}")
         except Exception as exc:
             logger.warning(f"PKM index build failed: {exc}")
             self.index = None
@@ -127,14 +131,21 @@ class ProjectKnowledgeModel:
         self, query: str, top_k: int, doc_type_filter: Optional[str]
     ) -> str:
         try:
-            q_emb = self.model.encode([query], show_progress_bar=False).astype("float32")
-            distances, indices = self.index.search(q_emb, min(top_k * 2, len(self.chunks)))
+            q_emb = self.model.encode(
+                [query], show_progress_bar=False, normalize_embeddings=True
+            ).astype("float32")
+            distances, indices = self.index.search(q_emb, min(top_k * 3, len(self.chunks)))
             results = []
+            seen = set()
             for idx in indices[0]:
                 if idx < len(self.chunks):
                     chunk = self.chunks[idx]
                     if doc_type_filter and chunk["doc_type"] != doc_type_filter:
                         continue
+                    key = chunk["text"][:120]
+                    if key in seen:
+                        continue
+                    seen.add(key)
                     results.append(chunk["text"])
                     if len(results) >= top_k:
                         break
@@ -179,14 +190,31 @@ class ProjectKnowledgeModel:
         )
 
     def retrieve_for_context(self, items: list, field: str = "scenario", top_k: int = 5) -> str:
-        """Build a targeted query from a list of test cases or requirements and retrieve relevant chunks."""
+        """Retrieve relevant chunks per item (test case / requirement) and merge unique results.
+
+        Querying per item keeps each query focused, which returns far more relevant
+        chunks than a single query built from all items concatenated together.
+        """
         if not items:
             return ""
-        sample_texts = " ".join(
-            str(item.get(field, "") or item.get("feature", "") or item.get("description", ""))
-            for item in items[:6]
-        )
-        return self.retrieve(sample_texts, top_k=top_k)
+        merged: List[str] = []
+        seen = set()
+        per_item_k = 2
+        for item in items[:10]:
+            query = str(
+                item.get(field, "") or item.get("feature", "") or item.get("description", "")
+            ).strip()
+            if not query:
+                continue
+            result = self.retrieve(query, top_k=per_item_k)
+            for chunk in result.split("\n---\n"):
+                key = chunk[:120]
+                if chunk.strip() and key not in seen:
+                    seen.add(key)
+                    merged.append(chunk)
+            if len(merged) >= top_k * 2:
+                break
+        return "\n---\n".join(merged[: top_k * 2])
 
     # ------------------------------------------------------------------
     # Traceability
